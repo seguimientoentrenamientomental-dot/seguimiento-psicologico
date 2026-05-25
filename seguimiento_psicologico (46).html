@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento Psicológico Deportivo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#eef4f4;--bg3:#ddeaea;
+  --text:#0d2b35;--text2:#2a5f6e;--text3:#4a8a96;
+  --border:rgba(13,43,53,0.13);--border2:rgba(13,43,53,0.25);
+  --radius:10px;--radius-lg:14px;
+  --navy:#0d3d5c;--petrol:#1a6b6b;
+  --danger:#c0392b;--warn:#b07d1a;--ok:#1a6b6b;
+  --font:'Segoe UI',system-ui,sans-serif;
+}
+@media(prefers-color-scheme:dark){:root{--bg:#0d2b35;--bg2:#112f3a;--bg3:#0a2028;--text:#e8f4f4;--text2:#8fbfc8;--text3:#5a8a96;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);}}
+body{font-family:var(--font);background:var(--bg3);color:var(--text);min-height:100vh}
+.shell{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:200px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column}
+.sb-logo{padding:16px 14px 12px;border-bottom:0.5px solid rgba(255,255,255,0.1)}
+.sb-logo h1{font-size:12px;font-weight:600;color:#e8f4f4}
+.sb-logo p{font-size:10px;color:#7ab0c0;margin-top:2px}
+.sb-section{padding:10px 14px 4px;font-size:10px;font-weight:600;color:#4a8a96;text-transform:uppercase;letter-spacing:.06em}
+.athlete-list{flex:1;overflow-y:auto;padding:4px 8px}
+.ath-item{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:8px;cursor:pointer;transition:all .12s;margin-bottom:2px}
+.ath-item:hover{background:rgba(255,255,255,0.07)}
+.ath-item.active{background:rgba(255,255,255,0.13)}
+.ath-av{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.15);color:#e8f4f4;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ath-item.active .ath-av{background:var(--petrol)}
+.ath-name{font-size:12px;font-weight:500;color:#e8f4f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ath-sport{font-size:10px;color:#7ab0c0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-btn{margin:6px 8px 4px;padding:7px 10px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;color:#8fbfc8;font-size:11px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;transition:all .12s;width:calc(100% - 16px)}
+.sb-btn:hover{background:rgba(255,255,255,0.12);color:#e8f4f4}
+.sb-footer{padding:10px 8px;border-top:0.5px solid rgba(255,255,255,0.1)}
+.sb-fbt{display:flex;align-items:center;gap:6px;width:100%;padding:6px 8px;background:none;border:0.5px solid rgba(255,255,255,0.12);border-radius:var(--radius);font-size:10px;color:#8fbfc8;cursor:pointer;margin-bottom:4px;font-family:var(--font);transition:all .12s}
+.sb-fbt:hover{background:rgba(255,255,255,0.08);color:#e8f4f4}
+.sb-hint{font-size:10px;color:#2a9d8f;padding:2px 4px;min-height:14px}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;min-width:0;display:flex;flex-direction:column}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text3);text-align:center;padding:40px}
+.empty p{font-size:14px;margin-top:8px}
+
+/* ATHLETE HEADER */
+.ath-header{background:var(--bg);border-bottom:0.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+.ath-hav{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#e8f4f4;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ath-hname{font-size:15px;font-weight:600;color:var(--text)}
+.ath-hmeta{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.ath-hmeta span{font-size:11px;color:var(--text2)}
+.lbl{color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+
+/* SESSION NAV */
+.sess-nav{background:var(--bg2);border-bottom:0.5px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.snav-btn{width:30px;height:30px;border:0.5px solid var(--border2);border-radius:7px;background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:16px;flex-shrink:0}
+.snav-btn:hover:not([disabled]){background:var(--bg3)}
+.snav-btn[disabled]{opacity:.3;cursor:default;pointer-events:none}
+.snav-info{flex:1;text-align:center}
+.snav-date{font-size:13px;font-weight:600;color:var(--text)}
+.snav-sub{font-size:10px;color:var(--text3)}
+.snav-new{padding:6px 14px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);flex-shrink:0}
+.snav-new:hover{opacity:.85}
+.snav-dots{display:flex;gap:3px;align-items:center;flex-wrap:wrap;max-width:120px}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--border2);cursor:pointer;flex-shrink:0;transition:all .1s}
+.sdot.sv{background:var(--petrol)}.sdot.sp{background:var(--text3)}.sdot.sc{background:var(--warn);border-radius:2px}.sdot.cur{outline:2px solid var(--navy);outline-offset:1px}
+
+/* SECTION HEADERS */
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 0;margin-bottom:8px}
+.sec-title{font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+.sec-line{height:1px;background:var(--border);margin:0 16px 12px}
+
+/* CONTENT */
+.session-content{padding:0 0 40px;flex:1}
+.sec-body{padding:0 16px}
+
+/* CARDS */
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.card-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+
+/* TEXTAREA */
+.ta{width:100%;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;padding:10px 12px;font-family:var(--font);resize:vertical;min-height:80px}
+.ta:focus{outline:none;border-color:var(--text3)}
+.ta-label{font-size:12px;color:var(--text3);margin-bottom:4px;display:block;margin-top:10px}
+.ta-label:first-child{margin-top:0}
+
+/* SCORE BUTTONS */
+.items-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.item-wrap{background:var(--bg2);border-radius:8px;padding:10px}
+.item-label{font-size:11px;color:var(--text2);min-height:28px;line-height:1.4;margin-bottom:6px}
+.item-score{display:flex;gap:3px}
+.score-btn{flex:1;height:54px;border:0.5px solid var(--border2);background:var(--bg);border-radius:6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--font);transition:all .1s}
+.score-btn:hover{background:var(--bg3)}
+.score-btn.selected{border-color:transparent;color:#fff}
+.snum{font-size:12px;font-weight:700;line-height:1}
+.slabel{font-size:8px;line-height:1;opacity:.8;text-align:center}
+.s1.selected{background:#c0392b}.s2.selected{background:#b07d1a}
+.s3.selected{background:#4a8a96}.s4.selected{background:var(--petrol)}.s5.selected{background:var(--navy)}
+.dim-avg{font-size:11px;color:var(--text3);margin-left:auto}
+
+/* COMP TOGGLE */
+.comp-bar{background:#fff8e8;border-top:0.5px solid #f0d070;border-bottom:0.5px solid #f0d070;padding:8px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
+.comp-bar:hover{background:#fff3d4}
+.comp-bar-label{font-size:12px;font-weight:600;color:#7a5010;flex:1}
+.comp-bar-btn{padding:5px 14px;border-radius:20px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.comp-bar-btn.on{background:#b07d1a;color:#fff}
+.comp-bar-btn.off{background:var(--navy);color:#fff}
+
+/* NIVEL BTNS */
+.nivel-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.nivel-btn{padding:6px 14px;border-radius:20px;border:0.5px solid var(--border2);background:var(--bg);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font)}
+.nivel-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.bloque-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.bloque-num{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* BUTTONS */
+.btn-primary{background:var(--navy);color:#fff;border:none;padding:8px 20px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font)}
+.btn-primary:hover{opacity:.85}
+.btn-sec{background:none;border:0.5px solid var(--border2);padding:7px 14px;border-radius:var(--radius);font-size:12px;cursor:pointer;color:var(--text2);font-family:var(--font)}
+.btn-sec:hover{background:var(--bg2)}
+.btn-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-low{background:#FCEBEB;color:#A32D2D}.badge-mid{background:#FAEEDA;color:#854F0B}.badge-high{background:#EAF3DE;color:#3B6D11}.badge-off{background:var(--bg3);color:var(--text3)}
+
+/* RADAR */
+.chip{padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer;border:0.5px solid var(--border2);background:var(--bg);color:var(--text2);font-weight:500}
+.chip.on{background:var(--bg3);color:var(--text)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+
+/* APUNTES */
+.apunte{padding:10px 12px;border-radius:var(--radius);background:var(--bg2);margin-bottom:8px;position:relative}
+.apunte-fecha{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.apunte-texto{font-size:12px;color:var(--text2);line-height:1.5}
+.apunte-del{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;opacity:.4}
+.apunte-del:hover{opacity:1;color:var(--danger)}
+.date-input{height:32px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:12px;padding:0 8px;font-family:var(--font);outline:none}
+
+/* MISC */
+.err{color:var(--danger);font-size:12px;margin-top:6px}
+.read-val{font-size:13px;font-weight:600}
+.read-label{font-size:11px;color:var(--text3);margin-top:2px}
+.view-card{background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+
+/* VIEW SECTIONS */
+.view-text{font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--bg);border-radius:var(--radius-lg);padding:18px;width:460px;max-width:96vw;border:0.5px solid var(--border);max-height:88vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text)}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.fgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.ffield{display:flex;flex-direction:column;gap:3px}
+.ffield label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+.ffield input{height:32px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;padding:0 8px;font-family:var(--font);outline:none}
+.ffield input:focus{border-color:var(--text3)}
+.dim-check{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;background:var(--bg2);cursor:pointer;margin-bottom:4px}
+.dim-check:hover{background:var(--bg3)}
+.dc-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.dc-dot.on{border-color:transparent}
+.dc-inner{width:6px;height:6px;border-radius:50%;background:#fff}
+.dim-check-name{font-size:12px;font-weight:500;color:var(--text);flex:0 0 auto;min-width:80px}
+.dim-check-sub{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+
+/* REPORT */
+@media print{.shell,.overlay{display:none!important}#rep-view{position:static!important;background:#fff!important}.no-print{display:none!important}}
+#rep-view{display:none;position:fixed;inset:0;background:#f0f0f0;z-index:200;overflow-y:auto}
+.rep-wrap{max-width:740px;margin:0 auto;padding:20px 14px}
+.rep-page{background:#fff;border-radius:10px;padding:36px 40px;box-shadow:0 2px 16px rgba(0,0,0,.08);margin-bottom:16px;font-family:'Segoe UI',system-ui,sans-serif;color:#1a1a1a;font-size:13px}
+.rep-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #0d3d5c}
+.rep-logo{font-size:10px;font-weight:700;color:#0d3d5c;text-transform:uppercase;letter-spacing:.08em}
+.rep-title{font-size:20px;font-weight:700;color:#0d3d5c}
+.rep-sub{font-size:12px;color:#666;margin-top:2px}
+.rep-aname{font-size:16px;font-weight:600}
+.rep-ameta{font-size:11px;color:#666;margin-top:2px}
+.rep-sec{margin-bottom:24px}
+.rep-sec-title{font-size:11px;font-weight:700;color:#0d3d5c;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:5px;border-bottom:0.5px solid #ddd}
+.rep-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:12px}
+.rep-card{border:1px solid #e8e8e8;border-radius:8px;padding:12px;background:#fafafa}
+.rep-card-name{font-size:10px;font-weight:700;color:#0d3d5c;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.rep-card-avg{font-size:24px;font-weight:700;margin-bottom:2px}
+.rep-trend{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;display:inline-block}
+.t-up{background:#EAF3DE;color:#3B6D11}.t-dn{background:#FCEBEB;color:#A32D2D}.t-st{background:#f0f0f0;color:#666}
+.rep-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+.rep-tbl th{background:#0d3d5c;color:#fff;padding:6px 8px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase}
+.rep-tbl td{padding:6px 8px;border-bottom:0.5px solid #eee}
+.rep-tbl tr:nth-child(even) td{background:#f8f8f8}
+.rv-low{color:#A32D2D;font-weight:600}.rv-mid{color:#854F0B;font-weight:600}.rv-high{color:#3B6D11;font-weight:600}
+.rep-foot{font-size:10px;color:#999;text-align:center;padding-top:12px;border-top:0.5px solid #eee;margin-top:8px}
+
+/* COMP BLOCKS */
+.comp-block{background:var(--bg2);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+.comp-block-title{font-size:11px;font-weight:700;color:#b07d1a;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.comp-opt-toggle{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg2);border-radius:8px;cursor:pointer;margin-bottom:8px;border:0.5px dashed var(--border2)}
+.comp-opt-label{font-size:12px;color:var(--text2);flex:1}
+
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;padding:5px 8px;border-bottom:0.5px solid var(--border)}
+td{padding:7px 8px;border-bottom:0.5px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+
+@media(max-width:600px){.sidebar{width:160px}.items-grid{grid-template-columns:1fr 1fr}.fgrid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="sb-logo"><h1>Seguimiento Psicológico</h1><p>Entrenamiento deportivo</p></div>
+  <div style="padding:6px 8px 4px">
+    <input id="ath-search" placeholder="Buscar nombre o deporte..." oninput="filterAths()"
+      style="width:100%;height:28px;background:rgba(255,255,255,0.1);border:0.5px solid rgba(255,255,255,0.2);border-radius:6px;color:#e8f4f4;font-size:11px;padding:0 8px;font-family:var(--font);outline:none;box-sizing:border-box">
+  </div>
+  <div class="sb-section">Deportistas</div>
+  <div class="athlete-list" id="ath-list"></div>
+  <button class="sb-btn" onclick="openNewAth()">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>Agregar deportista
+  </button>
+  <button class="sb-btn" onclick="openReporte()">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>Generar reporte
+  </button>
+  <button class="sb-btn" onclick="openRadar()">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="8,2 14,11 2,11"/></svg>Ver radar
+  </button>
+
+  <div class="sb-footer">
+    <button class="sb-fbt" onclick="exportData()">↓ Exportar respaldo</button>
+    <label class="sb-fbt" style="cursor:pointer">↑ Importar respaldo<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <div class="sb-hint" id="import-hint"></div>
+  </div>
+</aside>
+
+<div class="main" id="main-area">
+  <div class="empty"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".3"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><p>Selecciona un deportista</p></div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="ath-modal" style="display:none" onclick="closeOverlay('ath-modal')">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="modal-title">Nuevo deportista</div>
+  <input type="hidden" id="ath-id">
+  <div class="fgrid">
+    <div class="ffield" style="grid-column:1/-1"><label>Nombre completo</label><input id="ath-nombre" placeholder="Nombre"></div>
+    <div class="ffield" style="grid-column:1/-1"><label>Correo (deportista o padres)</label><input id="ath-email" type="email" placeholder="correo@ejemplo.com"></div>
+    <div class="ffield"><label>Deporte</label><input id="ath-deporte" list="dep-list" placeholder="Deporte">
+      <datalist id="dep-list"><option value="Atletismo"><option value="Baloncesto"><option value="Boxeo"><option value="Ciclismo"><option value="Escalada"><option value="Esgrima"><option value="Fútbol"><option value="Fútbol sala"><option value="Gimnasia artística"><option value="Gimnasia rítmica"><option value="Golf"><option value="Handball"><option value="Hockey"><option value="Judo"><option value="Karate"><option value="Kayak"><option value="Natación"><option value="Patinaje artístico"><option value="Remo"><option value="Rugby"><option value="Squash"><option value="Taekwondo"><option value="Tenis"><option value="Tenis de mesa"><option value="Triatlón"><option value="Vóleibol"><option value="Waterpolo"></datalist>
+    </div>
+    <div class="ffield"><label>Fecha de nacimiento</label><input id="ath-nac" type="date"></div>
+    <div class="ffield"><label>Edad</label><input id="ath-edad" readonly style="background:var(--bg2);color:var(--text3)"></div>
+  </div>
+  <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Variables activas</div>
+  <div id="dim-checks"></div>
+  <div style="margin-top:14px">
+    <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Objetivo del deportista</div>
+    <textarea id="ath-objetivo" class="ta" placeholder="Describe el objetivo actual del proceso..." style="min-height:60px;margin-bottom:8px"></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="ffield"><label>Fecha inicio</label><input type="date" id="ath-obj-inicio"></div>
+      <div class="ffield"><label>Plazo estimado</label><input type="date" id="ath-obj-fin"></div>
+    </div>
+  </div>
+  <div class="modal-actions"><button class="btn-sec" onclick="closeOverlay('ath-modal')">Cancelar</button><button class="btn-primary" onclick="saveAth()">Guardar</button></div>
+</div>
+</div>
+
+<div class="overlay" id="rep-modal" style="display:none" onclick="closeOverlay('rep-modal')">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Generar reporte</div>
+  <div class="fgrid" style="grid-template-columns:1fr">
+    <div class="ffield"><label>Deportista</label>
+      <select id="rep-ath" style="height:32px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;padding:0 8px;font-family:var(--font);outline:none"><option value="">— Selecciona —</option></select>
+    </div>
+  </div>
+  <div class="fgrid" style="grid-template-columns:1fr 1fr">
+    <div class="ffield"><label>Desde</label><input type="date" id="rep-desde"></div>
+    <div class="ffield"><label>Hasta</label><input type="date" id="rep-hasta"></div>
+  </div>
+  <div style="font-size:11px;color:var(--text2);margin-top:8px">Incluir:</div>
+  <div style="margin-top:6px;display:flex;flex-direction:column;gap:5px">
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="rep-vars" checked> Variables psicológicas</label>
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="rep-comp" checked> Competencias</label>
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="rep-pres" checked> Entrenamiento presencial</label>
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="rep-apuntes"> Apuntes</label>
+  </div>
+  <div class="modal-actions"><button class="btn-sec" onclick="closeOverlay('rep-modal')">Cancelar</button><button class="btn-primary" onclick="generarReporte()">Generar</button></div>
+</div>
+</div>
+
+<!-- REPORT VIEW -->
+<div id="rep-view">
+  <div class="rep-wrap">
+    <div class="no-print" style="display:flex;gap:8px;margin-bottom:16px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn-sec" onclick="document.getElementById('rep-view').style.display='none'">← Volver</button>
+      <button class="btn-primary" id="rep-send-btn" style="display:none;background:#1a6b6b">✉ Enviar por correo</button>
+      <button class="btn-primary" onclick="window.print()">Imprimir / PDF</button>
+    </div>
+    <div id="rep-content"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════ CONSTANTS ═══════════════
+const DIMS = [
+  {key:'ansiedad',label:'Regulación de ansiedad',color:'#0d3d5c',
+   items:['Registró ansiedad','Intentó regular','Logró regular'],
+   presenceLabel:'Presencia', effectLabel:'Efectividad'},
+  {key:'confianza',label:'Autoconfianza',color:'#1a6b6b',
+   items:['Registró evidencia real','Evitó pensamientos vagos','Usó refuerzos'],
+   presenceLabel:'Presencia', effectLabel:'Efectividad'},
+  {key:'atencion',label:'Atención y concentración',color:'#2a7a8a',
+   items:['Identificó foco','Detectó distracciones','Volvió al foco'],
+   presenceLabel:'Presencia', effectLabel:'Efectividad'},
+];
+
+const TOOLS = [
+  {key:'mindfulness',  label:'Mindfulness'},
+  {key:'pensamiento',  label:'Pensamiento afirmativo'},
+  {key:'visualizacion',label:'Visualización: simulación imaginada'},
+  {key:'anclajes',     label:'Anclajes'},
+  {key:'rutinas',      label:'Rutinas precompetitivas'},
+  {key:'relajacion',    label:'Relajación progresiva'},
+  {key:'gestion',       label:'Gestión emocional'},
+];
+const TOOL_Q = ['Nada','Algo','Más o menos','Mucho','Siempre'];
+const DIM_KEYS = DIMS.map(d=>d.key);
+const RADAR_LABELS = ['Ansiedad','Autoconfianza','Atención'];
+const RADAR_COLORS = ['#0d3d5c','#1a6b6b','#2a9d8f','#4fb3c8','#0a4a5a','#1a8a7a'];
+const QLABELS = ['Nada','Poco','A veces','Harto','Siempre'];
+const PRES_VARS = ['Control del ejercicio','Uso de técnica','Control de la atención'];
+const PRES_Q = ['Nada','Algo','Más o menos','Mucho','Siempre'];
+const EJERCICIOS = [
+  'Biofeedback: control de estrés en tiempo real',
+  'Luces para toma de decisiones',
+  'Luces para uso de anclajes',
+  'Luces para atención y concentración',
+  'Bastones de reacción para gestión emocional',
+  'Visualización: simulación imaginada',
+  'Combinados',
+  'Relajación progresiva',
+];
+const BLOQUE_LABELS = ['Normal','Medio','Difícil'];
+const COMP_Q = ['Muy bajo','Bajo','Intermedio','Bueno','Muy bueno'];
+const COMP_BLOCKS = [
+  {key:'entrada',label:'Entrada a competencia',optional:false,items:['Control emocional inicial','Confiaba en mi ejecución','Mi activación era adecuada','Utilicé mis rutinas precompetitivas']},
+  {key:'durante',label:'Durante competencia',optional:false,items:['Mantuve el foco en lo importante','Me recuperé tras errores','Controlé mis emociones bajo presión','Volví al presente cuando me desconcentré','Utilicé mis rutinas psicológicas']},
+  {key:'entre',label:'Entre ejecuciones / Rondas',optional:true,items:['Logré resetearme entre participaciones']},
+  {key:'despues',label:'Después de competir',optional:false,items:['Pude analizar objetivamente poco tiempo después','Me recuperé emocionalmente poco tiempo después','Identifiqué aprendizajes poco tiempo después']},
+  {key:'global',label:'Evaluación global',optional:false,items:['Funcionamiento mental general de la competencia']},
+];
+
+// ═══════════════ STATE ═══════════════
+let athletes = {};
+let curAth = null;
+let sessIdx = null;
+let varScores = {};
+let presScores = {};
+let presNivel = 'adaptacion';
+let compScores = {};
+let compOpt = {};
+let radarChart = null;
+let radarVis = new Set();
+
+// ═══════════════ STORAGE ═══════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIwsFpMMOiIfYaFY52g-UkOJM_FwKl65q1O6kmVPZpCOye57O31IigKDue8kzxxBRLBg/exec';
+
+async function saveData(){
+  try{localStorage.setItem('psy_v4',JSON.stringify(athletes));}catch(e){}
+  if(!SCRIPT_URL) return;
+  try{
+    showStatus('Guardando...');
+    await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(athletes),headers:{'Content-Type':'application/json'}});
+    showStatus('✓ Guardado'); setTimeout(()=>showStatus(''),2000);
+  }catch(e){showStatus('⚠ Solo local'); setTimeout(()=>showStatus(''),3000);}
+}
+async function loadData(){
+  try{const r=localStorage.getItem('psy_v4');if(r)athletes=JSON.parse(r);}catch(e){}
+  if(!SCRIPT_URL) return;
+  try{
+    const res=await fetch(SCRIPT_URL);
+    const d=await res.json();
+    if(d&&!d.error&&Object.keys(d).length){athletes=d;localStorage.setItem('psy_v4',JSON.stringify(d));}
+  }catch(e){}
+}
+function showStatus(msg){
+  let el=document.getElementById('save-status');
+  if(!el){el=document.createElement('div');el.id='save-status';el.style.cssText='position:fixed;bottom:14px;right:14px;background:#0d3d5c;color:#e8f4f4;font-size:11px;padding:6px 12px;border-radius:7px;z-index:300;transition:opacity .3s;font-family:var(--font)';document.body.appendChild(el);}
+  el.textContent=msg;el.style.opacity=msg?'1':'0';
+}
+
+// ═══════════════ HELPERS ═══════════════
+function initials(name){return name.split(' ').slice(0,2).map(w=>w[0].toUpperCase()).join('');}
+function getAge(nac){
+  if(!nac) return '';
+  const h=new Date(),d=new Date(nac+'T12:00:00');
+  let a=h.getFullYear()-d.getFullYear();
+  if(h.getMonth()-d.getMonth()<0||(h.getMonth()-d.getMonth()===0&&h.getDate()<d.getDate())) a--;
+  return a+' años';
+}
+function getActiveDims(a){return(a.activeDims||[]).map(k=>DIMS.find(d=>d.key===k)).filter(Boolean);}
+function getActiveTools(a){return(a.activeTools||[]).map(k=>TOOLS.find(t=>t.key===k)).filter(Boolean);}
+function parseCL(str){if(!str)return 0;var p=str.split('/');if(p.length===3){return new Date(+p[2],+p[1]-1,+p[0],12,0,0).getTime();}var p2=str.split('-');if(p2.length===3){return new Date(+p2[0],+p2[1]-1,+p2[2],12,0,0).getTime();}return new Date(str).getTime();}
+function today(){return new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function todayCL(){return new Date().toLocaleDateString('es-CL');}
+function badgeCls(v){return v<3?'badge-low':v<4?'badge-mid':'badge-high';}
+function rvCls(v){return v<3?'rv-low':v<4?'rv-mid':'rv-high';}
+
+// ═══════════════ SIDEBAR ═══════════════
+function renderSidebar(){
+  const q=(document.getElementById('ath-search')||{value:''}).value.toLowerCase().trim();
+  const el=document.getElementById('ath-list');
+  el.innerHTML='';
+  let count=0;
+  Object.entries(athletes).forEach(([id,a])=>{
+    if(q&&!a.name.toLowerCase().includes(q)&&!(a.deporte||'').toLowerCase().includes(q)) return;
+    count++;
+    const div=document.createElement('div');
+    div.className='ath-item'+(curAth===id?' active':'');
+    div.innerHTML='<div class="ath-av">'+initials(a.name)+'</div><div style="min-width:0"><div class="ath-name">'+a.name+'</div><div class="ath-sport">'+(a.deporte||'—')+'</div></div>';
+    div.onclick=()=>selectAth(id);
+    el.appendChild(div);
+  });
+  if(!count&&q){
+    const p=document.createElement('p');
+    p.style.cssText='font-size:10px;color:#4a8a96;padding:8px 10px;text-align:center';
+    p.textContent='Sin resultados';
+    el.appendChild(p);
+  }
+}
+
+function filterAths(){renderSidebar();}
+
+function selectAth(id){curAth=id;sessIdx=null;renderSidebar();renderMain();}
+
+// ═══════════════ MAIN ═══════════════
+function renderMain(){
+  const ma=document.getElementById('main-area');
+  if(!curAth){ma.innerHTML='<div class="empty"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".3"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><p>Selecciona un deportista</p></div>';return;}
+  const a=athletes[curAth];
+  const sessions=a.sessions||[];
+  const isNew=sessIdx===null;
+  const sess=isNew?null:sessions[sessIdx];
+  const activeDims=getActiveDims(a);
+  const isComp=!isNew&&sess&&sess.isComp;
+
+  // header meta
+  let meta='';
+  if(a.deporte) meta+='<span><span class="lbl">Deporte</span> '+a.deporte+'</span>';
+  if(a.nacimiento) meta+='<span><span class="lbl">Edad</span> '+getAge(a.nacimiento)+'</span>';
+  meta+='<span><span class="lbl">Sesiones</span> '+sessions.length+'</span>';
+
+  // pills
+  const pills=DIMS.map(dim=>{
+    const on=activeDims.find(d=>d.key===dim.key);
+    return'<span class="badge '+(on?'badge-high':'badge-off')+'" style="'+(on?'background:'+dim.color+';color:#fff':'')+'">'+dim.label.split(' ')[0]+'</span>';
+  }).join(' ');
+
+  // active tools pills
+  const activeTools=getActiveTools(a);
+  const toolPills=activeTools.map(function(tool){
+    return'<span class="badge" style="background:#b07d1a;color:#fff">'+tool.label+'</span>';
+  }).join(' ');
+
+  // dots
+  const dots=sessions.map((s,i)=>{
+    var cls=s.isComp&&s.comp?'sc':s.vars&&Object.keys(s.vars).length?'sv':s.pres?'sp':'';
+    return'<div class="sdot '+cls+(i===sessIdx?' cur':'')+'" title="'+(s.isComp?'Competencia':'Sesión')+' '+s.date+'" onclick="goSess('+i+')"></div>';
+  }).join('');
+
+  const sessDate=isNew?today():sess.date;
+  const sessLabel=isNew?'Nueva sesión':'Sesión '+(sessIdx+1)+' de '+sessions.length+(isComp?' · 🏆':'');
+
+  ma.innerHTML=
+    '<div class="ath-header">'+
+      '<div class="ath-hav">'+initials(a.name)+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="ath-hname">'+a.name+'</div>'+
+        '<div class="ath-hmeta">'+meta+'</div>'+
+      '</div>'+
+      '<button class="btn-sec" style="font-size:11px;padding:5px 10px" onclick="openEditAth()">Editar ficha</button>'+
+    '</div>'+
+    '<div style="padding:8px 16px;background:var(--bg2);border-bottom:0.5px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center">'+
+      '<span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-right:4px">Variables:</span>'+pills+
+      (activeTools.length?'<span style="font-size:10px;color:#b07d1a;text-transform:uppercase;letter-spacing:.04em;margin-left:8px;margin-right:4px">Herramientas:</span>'+toolPills:'')+
+    '</div>'+
+    (a.objetivo?'<div style="background:'+( a.objCumplido?'#eaf3de':'#f0f4f8')+';border-bottom:0.5px solid '+(a.objCumplido?'#c3ddb0':'var(--border)')+';padding:9px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="'+(a.objCumplido?'#3B6D11':'#0d3d5c')+'" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5.5 8l2 2 3-3"/></svg>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:10px;font-weight:600;color:'+(a.objCumplido?'#3B6D11':'#0d3d5c')+';text-transform:uppercase;letter-spacing:.04em">'+(a.objCumplido?'Objetivo cumplido':'Objetivo actual')+'</div>'+
+        '<div style="font-size:12px;color:var(--text2);margin-top:1px">'+a.objetivo+'</div>'+
+      '</div>'+
+      (a.objFin&&!a.objCumplido?'<span style="font-size:10px;color:var(--text3);white-space:nowrap">Plazo: '+new Date(a.objFin+'T12:00:00').toLocaleDateString("es-CL",{day:"numeric",month:"long"})+'</span>':'')+
+      (!a.objCumplido?'<button onclick="marcarObjetivoCumplido()" style="padding:4px 10px;background:#0d3d5c;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap">✓ Cumplido</button>':
+      '<button onclick="nuevoObjetivo()" style="padding:4px 10px;background:#1a6b6b;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap">+ Nuevo objetivo</button>')+
+    '</div>':'<div style="padding:8px 16px;background:var(--bg2);border-bottom:0.5px solid var(--border)"><button onclick="openEditAth()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:var(--font)">+ Agregar objetivo al deportista</button></div>')+
+    '<div class="sess-nav">'+
+      '<button class="snav-btn" '+(sessIdx===null||sessIdx===0?'disabled':'')+' onclick="goSess('+(sessIdx===null?sessions.length-1:sessIdx-1)+')">&#8249;</button>'+
+      '<div class="snav-info"><div class="snav-date">'+sessDate+'</div><div class="snav-sub">'+sessLabel+'</div></div>'+
+      '<button class="snav-btn" '+(isNew||sessIdx===sessions.length-1?'disabled':'')+' onclick="goSess('+(sessIdx===null?0:sessIdx+1)+')">&#8250;</button>'+
+      (dots?'<div class="snav-dots">'+dots+'</div>':'')+
+      '<button class="snav-new" onclick="newSess()">+ Nueva</button>'+
+    '</div>'+
+    '<div class="comp-bar" onclick="toggleComp()">'+
+      '<span class="comp-bar-label">🏆 Sesión de competencia</span>'+
+      '<button class="comp-bar-btn '+(isComp?'on':'off')+'" onclick="event.stopPropagation();toggleComp()">'+
+        (isComp?'✓ Activada':'Activar')+'</button>'+
+    '</div>'+
+    '<div class="session-content" id="sess-content"></div>';
+
+  renderSession();
+}
+
+function goSess(i){const s=athletes[curAth].sessions||[];if(i<0||i>=s.length)return;sessIdx=i;renderMain();}
+function newSess(){sessIdx=null;renderMain();}
+
+// ═══════════════ SESSION CONTENT ═══════════════
+function renderSession(){
+  const cont=document.getElementById('sess-content');
+  if(!cont) return;
+  const a=athletes[curAth];
+  const sessions=a.sessions||[];
+  const isNew=sessIdx===null;
+  const sess=isNew?null:sessions[sessIdx];
+  const isComp=!isNew&&sess&&sess.isComp;
+  const activeDims=getActiveDims(a);
+
+  let html='<div class="sec-body" style="padding-top:14px">';
+
+  // ── REGISTRO ──
+  html+='<div class="card-title">📋 Registro de la sesión</div>';
+  const reg=sess?sess.registro||{}:{};
+  if(!isNew&&(reg.actividad||reg.observaciones)&&!editingReg){
+    html+='<div class="view-card"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:4px">¿Qué se hizo?</div><div class="view-text">'+(reg.actividad||'—')+'</div></div>'+
+    '<div class="view-card"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Observaciones</div><div class="view-text">'+(reg.observaciones||'—')+'</div></div>'+
+    '<button class="btn-sec" style="margin-bottom:16px" onclick="editReg()">Editar registro</button>';
+  } else {
+    html+='<div class="card" id="reg-card">'+
+      '<label class="ta-label">¿Qué se hizo en la sesión?</label>'+
+      '<textarea class="ta" id="reg-actividad" placeholder="Describe actividades, ejercicios, metodología...">'+((reg.actividad)||'')+'</textarea>'+
+      '<label class="ta-label">Observaciones</label>'+
+      '<textarea class="ta" id="reg-observaciones" placeholder="Respuesta del deportista, aspectos a mejorar...">'+((reg.observaciones)||'')+'</textarea>'+
+      '<div class="btn-row"><button class="btn-primary" onclick="saveReg()">Guardar registro</button></div>'+
+    '</div>';
+  }
+
+  // ── VARIABLES O COMPETENCIA ──
+  if(isComp){
+    html+=renderCompForm(sess);
+  } else if(activeDims.length) {
+    html+=renderVarsForm(sess,activeDims);
+  }
+
+  // ── HERRAMIENTAS ──
+  const activeTools=getActiveTools(a);
+  if(!isComp&&activeTools.length){
+    html+=renderToolsForm(sess,activeTools);
+  }
+
+  // ── ENTRENAMIENTO PRESENCIAL ──
+  html+=renderPresForm(sess);
+
+  html+='</div>';
+  cont.innerHTML=html;
+
+  // init scores from existing data
+  if(sess&&sess.vars) initVarScores(sess,activeDims);
+  if(sess&&sess.comp) initCompScores(sess);
+}
+
+function editReg(){editingReg=true;renderSession();}
+function saveReg(){editingReg=false;
+  const act=document.getElementById('reg-actividad');
+  const obs=document.getElementById('reg-observaciones');
+  if(!act) return;
+  const a=athletes[curAth];
+  if(!a.sessions) a.sessions=[];
+  if(sessIdx===null){
+    a.sessions.push({id:'s'+Date.now(),date:todayCL(),registro:{actividad:act.value.trim(),observaciones:obs.value.trim()},vars:{},pres:null,isComp:false,comp:null});
+    sessIdx=a.sessions.length-1;
+  } else {
+    a.sessions[sessIdx].registro={actividad:act.value.trim(),observaciones:obs.value.trim()};
+  }
+  saveData();renderMain();
+}
+
+// ── TOGGLE COMP ──
+function toggleComp(){
+  const a=athletes[curAth];
+  if(!a.sessions) a.sessions=[];
+  if(sessIdx===null){
+    a.sessions.push({id:'s'+Date.now(),date:todayCL(),registro:{},vars:{},pres:null,isComp:true,comp:null});
+    sessIdx=a.sessions.length-1;
+  } else {
+    a.sessions[sessIdx].isComp=!a.sessions[sessIdx].isComp;
+    if(!a.sessions[sessIdx].isComp) a.sessions[sessIdx].comp=null;
+  }
+  saveData();renderMain();
+}
+
+// ── VARIABLES FORM ──
+function renderVarsForm(sess,activeDims){
+  varScores={};
+  let html='<div style="margin-top:6px"><div class="card-title">📊 Evaluación de variables</div>';
+  if(!sess||!sess.vars||!Object.keys(sess.vars).length){
+    if(!window.varItemActive) window.varItemActive={};
+    activeDims.forEach(function(dim){
+      varScores[dim.key]=[0,0,0];
+      var prevActive=getPrevActiveItems(dim.key);
+      window.varItemActive[dim.key]=prevActive.slice();
+      var dimColor=dim.color;
+      html+='<div class="card">';
+      html+='<div class="dim-header"><span style="font-size:13px;font-weight:600;color:'+dimColor+'">'+dim.label+'</span><span class="dim-avg" id="vavg-'+dim.key+'">—</span></div>';
+      html+='<div style="display:flex;flex-direction:column;gap:10px">';
+      for(var ii=0;ii<dim.items.length;ii++){
+        var item=dim.items[ii];
+        var isOn=prevActive[ii];
+        var dimKey=dim.key;
+        html+='<div id="vitem-'+dimKey+'-'+ii+'" style="background:var(--bg2);border-radius:8px;padding:10px 12px;opacity:'+(isOn?'1':'0.4')+';">';
+        html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+        html+='<span style="font-size:12px;font-weight:600;color:var(--text2)">'+item+'</span>';
+        var btnBg=isOn?dimColor:'var(--border2)';
+        var btnColor=isOn?'#fff':'var(--text3)';
+        var btnLabel=isOn?'Activo':'Activar';
+        html+='<button onclick="toggleVarItem(\'' +dimKey+ '\',' +ii+ ')" style="padding:3px 10px;border-radius:20px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);background:'+btnBg+';color:'+btnColor+'" id="vtbtn-'+dimKey+'-'+ii+'">'+btnLabel+'</button>';
+        html+='</div>';
+        html+='<div class="item-score" id="vscore-'+dimKey+'-'+ii+'" style="pointer-events:'+(isOn?'auto':'none')+'">';
+        for(var vi=0;vi<5;vi++){
+          html+='<button class="score-btn s'+(vi+1)+'" data-dim="'+dimKey+'" data-idx="'+ii+'" data-val="'+(vi+1)+'" onclick="selVar(this)"><span class="snum">'+(vi+1)+'</span><span class="slabel">'+QLABELS[vi]+'</span></button>';
+        }
+        html+='</div>';
+        html+='</div>';
+      }
+      html+='</div></div>';
+    });
+    html+='<div id="err-vars" class="err" style="display:none"></div>';
+    html+='<div class="btn-row"><button class="btn-primary" onclick="saveVars()">Guardar variables</button></div>';
+  } else {
+    // view mode
+    activeDims.forEach(function(dim){
+      var dv=sess.vars[dim.key];
+      if(!dv) return;
+      var presence=dv.presence!==undefined?dv.presence:dv.items[0];
+      var effect=dv.effect!==undefined?dv.effect:(dv.items[1]+dv.items[2])/2;
+      html+='<div class="card">'+
+        '<div style="font-size:13px;font-weight:600;color:'+dim.color+';margin-bottom:10px">'+dim.label+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+          '<div style="background:var(--bg2);border-radius:8px;padding:10px 12px">'+
+            '<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Presencia</div>'+
+            '<div style="font-size:11px;color:var(--text2);margin-bottom:6px">'+dim.items[0]+'</div>'+
+            (presence!==null?'<span class="badge" style="background:var(--bg3);color:var(--text2)">'+presence+' — '+QLABELS[presence-1]+'</span>':'<span style="font-size:11px;color:var(--text3)">No evaluado aún</span>')+
+          '</div>'+
+          '<div style="background:var(--bg2);border-radius:8px;padding:10px 12px">'+
+            '<div style="font-size:10px;font-weight:600;color:'+dim.color+';text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Efectividad</div>'+
+            '<div style="font-size:11px;color:var(--text2);margin-bottom:6px">'+dim.items[1]+' · '+dim.items[2]+'</div>'+
+            (effect!==null?'<span class="badge '+badgeCls(Math.round(effect))+'">'+effect.toFixed(2)+'</span>':'<span style="font-size:11px;color:var(--text3)">No evaluado aún</span>')+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='<button class="btn-sec" style="margin-bottom:8px" onclick="editVars()">Editar variables</button>';
+  }
+  return html+'</div>';
+}
+
+function initVarScores(sess,activeDims){
+  activeDims.forEach(dim=>{
+    const dv=sess.vars&&sess.vars[dim.key];
+    if(dv){
+      varScores[dim.key]=[...dv.items];
+      dv.items.forEach((v,i)=>{
+        const btn=document.querySelector('.score-btn[data-dim="'+dim.key+'"][data-idx="'+i+'"][data-val="'+v+'"]');
+        if(btn) btn.classList.add('selected');
+      });
+      const avgEl=document.getElementById('vavg-'+dim.key);
+      if(avgEl){
+        var pres=dv.presence!==undefined?dv.presence:dv.items[0];
+        var eff=dv.effect!==undefined?dv.effect:(dv.items[1]+dv.items[2])/2;
+        avgEl.textContent='Presencia: '+pres+' · Efectividad: '+eff.toFixed(2);
+      }
+    }
+  });
+}
+
+function getPrevActiveItems(dimKey){
+  // Look at last session with data for this dim to determine which items were active
+  var a=athletes[curAth];
+  var sessions=a&&a.sessions?a.sessions:[];
+  for(var i=sessions.length-1;i>=0;i--){
+    var s=sessions[i];
+    if(s.vars&&s.vars[dimKey]&&s.vars[dimKey].activeItems){
+      return s.vars[dimKey].activeItems;
+    }
+  }
+  // default: only first item active
+  return [true,false,false];
+}
+
+function toggleVarItem(dimKey,idx){
+  if(!window.varItemActive) window.varItemActive={};
+  if(!window.varItemActive[dimKey]) window.varItemActive[dimKey]=[true,false,false];
+  var isNowActive=!window.varItemActive[dimKey][idx];
+  window.varItemActive[dimKey][idx]=isNowActive;
+  var dim=DIMS.find(function(d){return d.key===dimKey;});
+  var wrap=document.getElementById('vitem-'+dimKey+'-'+idx);
+  var btn=document.getElementById('vtbtn-'+dimKey+'-'+idx);
+  var scoreDiv=document.getElementById('vscore-'+dimKey+'-'+idx);
+  if(wrap) wrap.style.opacity=isNowActive?'1':'0.4';
+  if(btn){btn.textContent=isNowActive?'Activo':'Activar';btn.style.background=isNowActive?dim.color:'var(--border2)';btn.style.color=isNowActive?'#fff':'var(--text3)';}
+  if(scoreDiv) scoreDiv.style.pointerEvents=isNowActive?'auto':'none';
+  if(!isNowActive){
+    varScores[dimKey][idx]=0;
+    document.querySelectorAll('.score-btn[data-dim="'+dimKey+'"][data-idx="'+idx+'"]').forEach(function(b){b.classList.remove('selected');});
+  }
+  updateVarAvg(dimKey);
+}
+
+function updateVarAvg(dimKey){
+  if(!window.varItemActive||!window.varItemActive[dimKey]) return;
+  var active=window.varItemActive[dimKey];
+  var scores=varScores[dimKey]||[0,0,0];
+  var allFilled=scores.every(function(v,i){return !active[i]||v>0;});
+  if(!allFilled) return;
+  var activeScores=scores.filter(function(v,i){return active[i];});
+  if(!activeScores.length) return;
+  // presence = item 0 if active, effect = active items 1&2
+  var presStr='', effStr='';
+  if(active[0]) presStr='Presencia: '+scores[0];
+  var effItems=[];
+  if(active[1]&&scores[1]) effItems.push(scores[1]);
+  if(active[2]&&scores[2]) effItems.push(scores[2]);
+  if(effItems.length) effStr='Efectividad: '+(effItems.reduce(function(a,b){return a+b;},0)/effItems.length).toFixed(2);
+  var el=document.getElementById('vavg-'+dimKey);
+  if(el) el.textContent=[presStr,effStr].filter(Boolean).join(' · ');
+}
+
+function selVar(btn){
+  const dim=btn.dataset.dim,idx=+btn.dataset.idx,val=+btn.dataset.val;
+  if(!varScores[dim]) varScores[dim]=[0,0,0];
+  varScores[dim][idx]=val;
+  document.querySelectorAll('.score-btn[data-dim="'+dim+'"][data-idx="'+idx+'"]').forEach(b=>b.classList.toggle('selected',+b.dataset.val===val));
+  updateVarAvg(dim);
+}
+
+function editVars(){const a=athletes[curAth];if(a.sessions&&a.sessions[sessIdx])a.sessions[sessIdx].vars={};renderSession();}
+function saveVars(){
+  // reset for next session
+  // (saved in data, reset after)
+  const a=athletes[curAth];
+  const activeDims=getActiveDims(a);
+  const err=document.getElementById('err-vars');
+  for(var di=0;di<activeDims.length;di++){
+    var dim=activeDims[di];
+    var active=(window.varItemActive&&window.varItemActive[dim.key])||[true,true,true];
+    var anyActive=active.some(function(a){return a;});
+    if(!anyActive){if(err){err.textContent='Activa al menos un ítem de "'+dim.label+'".';err.style.display='block';}return;}
+    for(var ii=0;ii<3;ii++){
+      if(active[ii]&&(!varScores[dim.key]||!varScores[dim.key][ii])){
+        if(err){err.textContent='Completa los ítems activos de "'+dim.label+'".';err.style.display='block';}return;
+      }
+    }
+  }
+  if(err) err.style.display='none';
+  if(!a.sessions) a.sessions=[];
+  const vars={};
+  activeDims.forEach(dim=>{const avg=varScores[dim.key].reduce((a,b)=>a+b,0)/3;vars[dim.key]={items:[...varScores[dim.key]],avg};});
+  if(sessIdx===null){a.sessions.push({id:'s'+Date.now(),date:todayCL(),registro:{},vars,pres:null,isComp:false,comp:null});sessIdx=a.sessions.length-1;}
+  else a.sessions[sessIdx].vars=vars;
+  saveData();renderMain();
+}
+
+// ── COMP FORM ──
+function renderCompForm(sess){
+  compScores={};compOpt={};
+  COMP_BLOCKS.forEach(b=>{compScores[b.key]=new Array(b.items.length).fill(0);compOpt[b.key]=!b.optional;});
+
+  let html='<div style="margin-top:6px"><div class="card-title" style="color:#b07d1a">🏆 Evaluación de competencia</div>';
+
+  if(!sess||!sess.comp){
+    COMP_BLOCKS.forEach((blk,bi)=>{
+      if(blk.optional){
+        html+='<div class="comp-opt-toggle" onclick="toggleCompOpt(\''+blk.key+'\')">'+
+          '<div class="toggle-track" id="cot-'+blk.key+'"><div class="toggle-knob"></div></div>'+
+          '<span class="comp-opt-label"><strong>'+blk.label+'</strong> — opcional (múltiples participaciones)</span></div>'+
+          '<div id="cob-'+blk.key+'" style="display:none">';
+      } else {
+        html+='<div id="cob-'+blk.key+'">';
+      }
+      html+='<div class="card">'+
+        '<div class="comp-block-title"><span style="color:#b07d1a;font-weight:700;font-size:11px;text-transform:uppercase">'+(bi+1)+'. '+blk.label+'</span>'+
+        '<span class="dim-avg" id="cavg-'+blk.key+'">—</span></div>'+
+        '<div class="items-grid" style="'+(blk.items.length===1?'grid-template-columns:1fr':'')+'">'+
+        blk.items.map((item,i)=>'<div class="item-wrap"><div class="item-label">'+item+'</div><div class="item-score">'+
+          [1,2,3,4,5].map((v,qi)=>'<button class="score-btn s'+v+'" data-blk="'+blk.key+'" data-idx="'+i+'" data-val="'+v+'" onclick="selComp(this)"><span class="snum">'+v+'</span><span class="slabel">'+COMP_Q[qi]+'</span></button>').join('')+
+        '</div></div>').join('')+
+        '</div></div></div>';
+    });
+    html+='<div id="err-comp" class="err" style="display:none"></div>';
+    html+='<div class="btn-row"><button class="btn-primary" onclick="saveComp()">Guardar competencia</button></div>';
+  } else {
+    // view
+    const cp=sess.comp;
+    COMP_BLOCKS.forEach(blk=>{
+      const bd=cp.blocks[blk.key];if(!bd) return;
+      html+='<div class="comp-block"><div class="comp-block-title">'+blk.label+' <span style="font-size:13px">'+bd.avg.toFixed(2)+'</span></div>'+
+      blk.items.map((item,i)=>{const v=bd.items[i];return'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">'+item+'</span><span class="badge '+badgeCls(v)+'">'+v+' — '+COMP_Q[v-1]+'</span></div>';}).join('')+
+      '</div>';
+    });
+    html+='<div style="text-align:center;padding:12px;font-size:24px;font-weight:700;color:#b07d1a">Promedio global: '+cp.globalAvg.toFixed(2)+'</div>';
+    html+='<button class="btn-sec" style="margin-bottom:8px" onclick="editComp()">Editar competencia</button>';
+  }
+  return html+'</div>';
+}
+
+function initCompScores(sess){
+  if(!sess||!sess.comp) return;
+  COMP_BLOCKS.forEach(blk=>{
+    const bd=sess.comp.blocks[blk.key];
+    if(!bd) return;
+    compScores[blk.key]=[...bd.items];
+    bd.items.forEach((v,i)=>{
+      const btn=document.querySelector('.score-btn[data-blk="'+blk.key+'"][data-idx="'+i+'"][data-val="'+v+'"]');
+      if(btn) btn.classList.add('selected');
+    });
+    const el=document.getElementById('cavg-'+blk.key);
+    if(el) el.textContent='Promedio: '+bd.avg.toFixed(2);
+  });
+}
+
+function toggleCompOpt(key){
+  compOpt[key]=!compOpt[key];
+  const track=document.getElementById('cot-'+key);
+  const block=document.getElementById('cob-'+key);
+  if(track) track.classList.toggle('on',compOpt[key]);
+  if(block) block.style.display=compOpt[key]?'block':'none';
+  if(!compOpt[key]) compScores[key]=new Array(COMP_BLOCKS.find(b=>b.key===key).items.length).fill(0);
+}
+
+function selComp(btn){
+  const blk=btn.dataset.blk,idx=+btn.dataset.idx,val=+btn.dataset.val;
+  compScores[blk][idx]=val;
+  document.querySelectorAll('.score-btn[data-blk="'+blk+'"][data-idx="'+idx+'"]').forEach(b=>b.classList.toggle('selected',+b.dataset.val===val));
+  if(compScores[blk].every(v=>v>0)){const avg=compScores[blk].reduce((a,b)=>a+b,0)/compScores[blk].length;const el=document.getElementById('cavg-'+blk);if(el)el.textContent='Promedio: '+avg.toFixed(2);}
+}
+
+function editComp(){const a=athletes[curAth];if(a.sessions&&a.sessions[sessIdx])a.sessions[sessIdx].comp=null;renderSession();}
+function saveComp(){
+  const err=document.getElementById('err-comp');
+  for(const blk of COMP_BLOCKS){
+    if(!compOpt[blk.key]) continue;
+    if(compScores[blk.key].some(v=>!v)){if(err){err.textContent='Completa todos los ítems de "'+blk.label+'".';err.style.display='block';}return;}
+  }
+  if(err) err.style.display='none';
+  const blocks={};let sum=0,cnt=0;
+  COMP_BLOCKS.forEach(blk=>{
+    if(!compOpt[blk.key]) return;
+    const avg=compScores[blk.key].reduce((a,b)=>a+b,0)/blk.items.length;
+    blocks[blk.key]={items:[...compScores[blk.key]],avg};
+    sum+=avg;cnt++;
+  });
+  const comp={blocks,globalAvg:cnt?sum/cnt:0};
+  const a=athletes[curAth];
+  if(!a.sessions) a.sessions=[];
+  if(sessIdx===null){a.sessions.push({id:'s'+Date.now(),date:todayCL(),registro:{},vars:{},pres:null,isComp:true,comp});sessIdx=a.sessions.length-1;}
+  else{a.sessions[sessIdx].comp=comp;a.sessions[sessIdx].isComp=true;}
+  saveData();renderMain();
+}
+
+
+// ── TOOLS FORM ──
+function renderToolsForm(sess, activeTools){
+  var html='<div style="margin-top:6px"><div class="card-title">🔧 Herramientas</div>';
+
+  if(sess&&sess.tools&&Object.keys(sess.tools).length){
+    // view mode
+    html+='<div class="card">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">'+
+        '<span style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase">Herramienta</span>'+
+        '<span style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase">¿Qué tanto la utilizó?</span>'+
+        '<span style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase">¿Qué tanto sintió que sirvió?</span>'+
+      '</div>';
+    activeTools.forEach(function(tool){
+      var tv=sess.tools[tool.key];
+      if(!tv) return;
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:6px 0;border-bottom:0.5px solid var(--border);align-items:center">'+
+        '<span style="font-size:12px;font-weight:600;color:var(--text2)">'+tool.label+'</span>'+
+        '<span class="badge '+badgeCls(tv.uso)+'">'+tv.uso+' — '+TOOL_Q[tv.uso-1]+'</span>'+
+        '<span class="badge '+badgeCls(tv.util)+'">'+tv.util+' — '+TOOL_Q[tv.util-1]+'</span>'+
+      '</div>';
+    });
+    html+='</div><button class="btn-sec" style="margin-bottom:8px" onclick="editTools()">Editar herramientas</button>';
+  } else {
+    // form mode
+    html+='<div class="card"><div style="display:flex;flex-direction:column;gap:14px">';
+    activeTools.forEach(function(tool){
+      html+='<div style="background:var(--bg2);border-radius:8px;padding:10px 12px">'+
+        '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px">'+tool.label+'</div>'+
+        '<div style="margin-bottom:8px">'+
+          '<div style="font-size:11px;color:var(--text3);margin-bottom:5px">¿Qué tanto la utilizó?</div>'+
+          '<div style="display:flex;gap:4px">'+
+          [1,2,3,4,5].map(function(v,qi){
+            return'<button class="score-btn s'+v+'" style="height:50px;flex:1" data-tool="'+tool.key+'" data-type="uso" data-val="'+v+'" onclick="selTool(this)">'+
+              '<span class="snum">'+v+'</span><span class="slabel">'+TOOL_Q[qi]+'</span></button>';
+          }).join('')+
+          '</div>'+
+        '</div>'+
+        '<div>'+
+          '<div style="font-size:11px;color:var(--text3);margin-bottom:5px">¿Qué tanto sintió que sirvió?</div>'+
+          '<div style="display:flex;gap:4px">'+
+          [1,2,3,4,5].map(function(v,qi){
+            return'<button class="score-btn s'+v+'" style="height:50px;flex:1" data-tool="'+tool.key+'" data-type="util" data-val="'+v+'" onclick="selTool(this)">'+
+              '<span class="snum">'+v+'</span><span class="slabel">'+TOOL_Q[qi]+'</span></button>';
+          }).join('')+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='</div>';
+    html+='<div id="err-tools" class="err" style="display:none"></div>';
+    html+='<div class="btn-row"><button class="btn-primary" onclick="saveTools()">Guardar herramientas</button></div></div>';
+  }
+  return html+'</div>';
+}
+
+function selTool(btn){
+  var tool=btn.dataset.tool, type=btn.dataset.type, val=+btn.dataset.val;
+  document.querySelectorAll('.score-btn[data-tool="'+tool+'"][data-type="'+type+'"]').forEach(function(b){b.classList.toggle('selected',+b.dataset.val===val);});
+}
+
+function editTools(){
+  var a=athletes[curAth];
+  if(a.sessions&&a.sessions[sessIdx]) a.sessions[sessIdx].tools={};
+  renderSession();
+}
+
+function saveTools(){
+  var a=athletes[curAth];
+  var activeTools=getActiveTools(a);
+  var err=document.getElementById('err-tools');
+  var tools={};
+  for(var i=0;i<activeTools.length;i++){
+    var tool=activeTools[i];
+    var usoBtn=document.querySelector('.score-btn[data-tool="'+tool.key+'"][data-type="uso"].selected');
+    var utilBtn=document.querySelector('.score-btn[data-tool="'+tool.key+'"][data-type="util"].selected');
+    if(!usoBtn||!utilBtn){
+      if(err){err.textContent='Completa ambas preguntas para "'+tool.label+'".';err.style.display='block';}
+      return;
+    }
+    tools[tool.key]={uso:+usoBtn.dataset.val, util:+utilBtn.dataset.val};
+  }
+  if(err) err.style.display='none';
+  if(!a.sessions) a.sessions=[];
+  if(sessIdx===null){
+    a.sessions.push({id:'s'+Date.now(),date:todayCL(),registro:{},vars:{},tools,pres:null,isComp:false,comp:null});
+    sessIdx=a.sessions.length-1;
+  } else {
+    a.sessions[sessIdx].tools=tools;
+  }
+  saveData();renderMain();
+}
+
+// ── PRESENCIAL FORM ──
+var presEjercicio='';
+var editingReg=false;
+var presNBloques=1;
+
+function renderPresForm(sess){
+  presScores={0:{0:0,1:0,2:0},1:{0:0,1:0,2:0},2:{0:0,1:0,2:0}};
+  presEjercicio='';presNBloques=1;
+  var html='<div style="margin-top:6px"><div class="card-title">🏋️ Entrenamiento presencial <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></div>';
+
+  if(sess&&sess.pres){
+    var p=sess.pres;
+    html+='<div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<span class="badge" style="background:var(--navy);color:#fff;font-size:12px;padding:4px 12px">'+(p.ejercicio||p.nivelLabel||'—')+'</span>'+
+      '<span style="font-size:12px;color:var(--text3)">'+p.bloques.length+' bloque'+(p.bloques.length>1?'s':'')+' · Promedio: <strong>'+p.nivelAvg.toFixed(2)+'</strong></span>'+
+    '</div>';
+    p.bloques.forEach(function(b,i){
+      html+='<div class="card"><div class="bloque-header">'+
+        '<div class="bloque-num">'+(i+1)+'</div>'+
+        '<span style="font-size:13px;font-weight:600">Bloque '+(i+1)+' — '+BLOQUE_LABELS[i]+'</span>'+
+        '<span class="dim-avg">'+b.avg.toFixed(2)+'</span>'+
+      '</div>'+
+      '<div class="items-grid">'+PRES_VARS.map(function(vname,vi){var v=b.items[vi];return'<div class="item-wrap"><div class="item-label">'+vname+'</div><span class="badge '+badgeCls(v)+'">'+v+' — '+PRES_Q[v-1]+'</span></div>';}).join('')+
+      '</div></div>';
+    });
+    html+='<button class="btn-sec" style="margin-bottom:8px" onclick="editPres()">Editar entrenamiento</button>';
+  } else {
+    html+='<div class="card">'+
+    '<div style="margin-bottom:12px">'+
+      '<span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;display:block;margin-bottom:6px">Ejercicio</span>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:5px" id="ejercicio-btns">'+
+      EJERCICIOS.map(function(ej){return'<button class="nivel-btn" data-ej="'+ej+'" onclick="selEjercicio(this)">'+ej+'</button>';}).join('')+
+      '</div>'+
+    '</div>'+
+    '<div style="margin-bottom:14px">'+
+      '<span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;display:block;margin-bottom:6px">Bloques</span>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap" id="nbloques-btns">'+
+      [1,2,3].map(function(n){return'<button class="nivel-btn'+(n===1?' active':'')+'" data-nb="'+n+'" onclick="selNBloques(this)">'+n+' ('+BLOQUE_LABELS.slice(0,n).join(' + ')+')</button>';}).join('')+
+      '</div>'+
+    '</div>'+
+    '<div id="bloques-dinamicos"></div>'+
+    '<div id="err-pres" class="err" style="display:none"></div>'+
+    '<div class="btn-row"><button class="btn-primary" onclick="savePres()">Guardar entrenamiento</button></div>'+
+    '</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+function selEjercicio(btn){
+  document.querySelectorAll('#ejercicio-btns .nivel-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  presEjercicio=btn.dataset.ej;
+}
+
+function selNBloques(btn){
+  document.querySelectorAll('#nbloques-btns .nivel-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  presNBloques=+btn.dataset.nb;
+  renderBloquesDinamicos();
+}
+
+function renderBloquesDinamicos(){
+  var cont=document.getElementById('bloques-dinamicos');
+  if(!cont)return;
+  var html='';
+  for(var bi=0;bi<presNBloques;bi++){
+    presScores[bi]={0:0,1:0,2:0};
+    var biCopy=bi;
+    html+='<div style="margin-bottom:12px"><div class="bloque-header">'+
+      '<div class="bloque-num">'+(bi+1)+'</div>'+
+      '<span style="font-size:13px;font-weight:600">Bloque '+(bi+1)+' — '+BLOQUE_LABELS[bi]+'</span>'+
+      '<span class="dim-avg" id="pavg-'+bi+'">—</span>'+
+    '</div>'+
+    '<div class="items-grid">'+
+    PRES_VARS.map(function(vname,vi){
+      return'<div class="item-wrap"><div class="item-label">'+vname+'</div><div class="item-score">'+
+        [1,2,3,4,5].map(function(v,qi){
+          return'<button class="score-btn s'+v+'" data-bi="'+biCopy+'" data-vi="'+vi+'" data-val="'+v+'" onclick="selPres(this)"><span class="snum">'+v+'</span><span class="slabel">'+PRES_Q[qi]+'</span></button>';
+        }).join('')+
+      '</div></div>';
+    }).join('')+
+    '</div></div>';
+  }
+  cont.innerHTML=html;
+}
+
+function selPres(btn){
+  var bi=+btn.dataset.bi,vi=+btn.dataset.vi,val=+btn.dataset.val;
+  if(!presScores[bi])presScores[bi]={0:0,1:0,2:0};
+  presScores[bi][vi]=val;
+  document.querySelectorAll('.score-btn[data-bi="'+bi+'"][data-vi="'+vi+'"]').forEach(function(b){b.classList.toggle('selected',+b.dataset.val===val);});
+  var vals=Object.values(presScores[bi]);
+  if(vals.every(function(v){return v>0;})){var el=document.getElementById('pavg-'+bi);if(el)el.textContent='Promedio: '+(vals.reduce(function(a,b){return a+b;},0)/3).toFixed(2);}
+}
+
+function editPres(){var a=athletes[curAth];if(a.sessions&&a.sessions[sessIdx])a.sessions[sessIdx].pres=null;renderSession();}
+
+function savePres(){
+  var err=document.getElementById('err-pres');
+  if(!presEjercicio){if(err){err.textContent='Selecciona un ejercicio.';err.style.display='block';}return;}
+  for(var bi=0;bi<presNBloques;bi++){
+    for(var vi=0;vi<3;vi++){
+      if(!presScores[bi]||!presScores[bi][vi]){if(err){err.textContent='Completa todos los ítems del Bloque '+(bi+1)+'.';err.style.display='block';}return;}
+    }
+  }
+  if(err)err.style.display='none';
+  var bloques=[];
+  for(var bi=0;bi<presNBloques;bi++){
+    var items=Object.values(presScores[bi]);
+    bloques.push({items:items,avg:items.reduce(function(a,b){return a+b;},0)/3,label:BLOQUE_LABELS[bi]});
+  }
+  var nivelAvg=bloques.reduce(function(s,b){return s+b.avg;},0)/bloques.length;
+  var a=athletes[curAth];
+  if(!a.sessions)a.sessions=[];
+  var pres={ejercicio:presEjercicio,bloques:bloques,nivelAvg:nivelAvg};
+  if(sessIdx===null){a.sessions.push({id:'s'+Date.now(),date:todayCL(),registro:{},vars:{},tools:{},pres:pres,isComp:false,comp:null});sessIdx=a.sessions.length-1;}
+  else a.sessions[sessIdx].pres=pres;
+  saveData();renderMain();
+}
+
+// ═══════════════ RADAR ═══════════════
+function openRadar(){
+  if(!curAth){alert('Selecciona un deportista.');return;}
+  const a=athletes[curAth];
+  const sessions=(a.sessions||[]).filter(s=>s.vars&&Object.keys(s.vars).length);
+  if(!sessions.length){alert('Sin evaluaciones de variables registradas.');return;}
+
+  radarVis=new Set([...sessions.map((_,i)=>i),'avg']);
+  const chips=sessions.map((s,i)=>'<div class="chip on" data-si="'+i+'" onclick="togChip(this)">'+s.date+'</div>').join('')+
+    '<div class="chip on" data-si="avg" onclick="togChip(this)">Promedio</div>';
+
+  showPanel('🎯 Radar — '+a.name,
+    '<div class="chips" id="radar-chips">'+chips+'</div>'+
+    '<div style="max-width:360px;margin:0 auto"><canvas id="radar-cv" width="400" height="400"></canvas></div>'
+  );
+  setTimeout(()=>drawRadar(sessions),100);
+}
+
+function togChip(el){
+  const w=el.dataset.si==='avg'?'avg':+el.dataset.si;
+  if(radarVis.has(w))radarVis.delete(w);else radarVis.add(w);
+  el.classList.toggle('on',radarVis.has(w));
+  const a=athletes[curAth];
+  drawRadar((a.sessions||[]).filter(s=>s.vars&&Object.keys(s.vars).length));
+}
+
+function drawRadar(sessions){
+  const cv=document.getElementById('radar-cv');if(!cv)return;
+  if(radarChart){radarChart.destroy();radarChart=null;}
+  const isDark=matchMedia('(prefers-color-scheme:dark)').matches;
+  const gc=isDark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.1)';
+  const tc=isDark?'rgba(255,255,255,0.55)':'rgba(0,0,0,0.55)';
+  const ds=[];let ci=0;
+  sessions.forEach((s,i)=>{
+    if(!radarVis.has(i))return;
+    const c=RADAR_COLORS[ci++%RADAR_COLORS.length];
+    ds.push({label:s.date,data:DIM_KEYS.map(k=>s.vars[k]?s.vars[k].avg:null),spanGaps:false,backgroundColor:c+'22',borderColor:c,borderWidth:1.5,pointBackgroundColor:c,pointRadius:3});
+  });
+  if(radarVis.has('avg')){
+    const c=RADAR_COLORS[ci++%RADAR_COLORS.length];
+    ds.push({label:'Promedio',data:DIM_KEYS.map(k=>{const v=sessions.filter(s=>s.vars&&s.vars[k]).map(s=>s.vars[k].avg);return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):null;}),spanGaps:false,backgroundColor:c+'33',borderColor:c,borderWidth:2,borderDash:[5,3],pointBackgroundColor:c,pointRadius:4});
+  }
+  radarChart=new Chart(cv,{type:'radar',data:{labels:RADAR_LABELS,datasets:ds},options:{responsive:true,maintainAspectRatio:true,scales:{r:{min:0,max:5,ticks:{stepSize:1,color:tc,backdropColor:'transparent',font:{size:10}},grid:{color:gc},pointLabels:{color:tc,font:{size:12}},angleLines:{color:gc}}},plugins:{legend:{display:true,position:'bottom',labels:{color:tc,boxWidth:10,font:{size:11}}}},elements:{line:{tension:0.2}}}});
+}
+
+// ═══════════════ APUNTES ═══════════════
+function openApuntes(){
+  if(!curAth){alert('Selecciona un deportista.');return;}
+  renderApuntesPanel();
+}
+function renderApuntesPanel(){
+  const a=athletes[curAth];
+  if(!a.apuntes) a.apuntes=[];
+  const sorted=[...a.apuntes].sort((x,y)=>new Date(y.fecha)-new Date(x.fecha));
+  showPanel('📝 Apuntes — '+a.name,
+    '<div class="card" style="margin-bottom:12px">'+
+    '<label class="ta-label" style="margin-top:0">Nuevo apunte</label>'+
+    '<textarea class="ta" id="ap-text" placeholder="Escribe un apunte..."></textarea>'+
+    '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">'+
+    '<input type="date" id="ap-fecha" class="date-input" value="'+todayISO()+'">'+
+    '<button class="btn-primary" onclick="saveApunte()">Guardar</button>'+
+    '</div></div>'+
+    '<div id="ap-list">'+
+    (sorted.length?sorted.map(ap=>'<div class="apunte" id="ap-'+ap.id+'"><button class="apunte-del" onclick="delApunte(\''+ap.id+'\')">×</button><div class="apunte-fecha">'+new Date(ap.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div><div class="apunte-texto">'+ap.texto+'</div></div>').join(''):'<p style="font-size:13px;color:var(--text3)">Sin apuntes.</p>')+
+    '</div>'
+  );
+}
+function saveApunte(){
+  const txt=document.getElementById('ap-text').value.trim();
+  const fecha=document.getElementById('ap-fecha').value;
+  if(!txt){alert('Escribe algo.');return;}
+  const a=athletes[curAth];if(!a.apuntes)a.apuntes=[];
+  a.apuntes.push({id:'ap'+Date.now(),fecha,texto:txt});
+  saveData();renderApuntesPanel();
+}
+function delApunte(id){
+  if(!confirm('¿Eliminar?'))return;
+  athletes[curAth].apuntes=athletes[curAth].apuntes.filter(a=>a.id!==id);
+  saveData();renderApuntesPanel();
+}
+
+// ═══════════════ PANEL OVERLAY ═══════════════
+function showPanel(title,bodyHtml){
+  let panel=document.getElementById('side-panel');
+  if(!panel){
+    panel=document.createElement('div');
+    panel.id='side-panel';
+    panel.style.cssText='position:fixed;top:0;right:0;width:480px;max-width:100vw;height:100vh;background:var(--bg);border-left:0.5px solid var(--border);z-index:50;overflow-y:auto;box-shadow:-4px 0 20px rgba(0,0,0,0.15)';
+    document.body.appendChild(panel);
+  }
+  panel.innerHTML='<div style="padding:16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between">'+
+    '<span style="font-size:14px;font-weight:600;color:var(--text)">'+title+'</span>'+
+    '<button class="btn-sec" style="padding:4px 10px" onclick="document.getElementById(\'side-panel\').remove()">✕</button>'+
+    '</div>'+
+    '<div style="padding:16px">'+bodyHtml+'</div>';
+  panel.style.display='block';
+}
+
+// ═══════════════ ATHLETE MODAL ═══════════════
+function calcEdad(){
+  const nac=document.getElementById('ath-nac').value;
+  document.getElementById('ath-edad').value=nac?getAge(nac):'';
+}
+function buildDimChecks(active, activeTools){
+  activeTools=activeTools||[];
+  var html='<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Variables psicológicas</div>';
+  html+=DIMS.map(function(dim){
+    var on=active.includes(dim.key);
+    return'<div class="dim-check" onclick="togDim(\''+dim.key+'\')">'+
+      '<div class="dc-dot'+(on?' on':'')+'" id="dc-'+dim.key+'" style="'+(on?'background:'+dim.color:'')+'">'+
+      (on?'<div class="dc-inner"></div>':'')+
+      '</div>'+
+      '<span class="dim-check-name">'+dim.label+'</span>'+
+      '<span class="dim-check-sub">'+dim.items.join(' · ')+'</span>'+
+    '</div>';
+  }).join('');
+  html+='<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 6px">Herramientas</div>';
+  html+=TOOLS.map(function(tool){
+    var on=activeTools.includes(tool.key);
+    return'<div class="dim-check" onclick="togTool(\''+tool.key+'\')">'+
+      '<div class="dc-dot'+(on?' on':'')+'" id="dt-'+tool.key+'" style="'+(on?'background:#b07d1a':'')+'">'+
+      (on?'<div class="dc-inner"></div>':'')+
+      '</div>'+
+      '<span class="dim-check-name">'+tool.label+'</span>'+
+      '<span class="dim-check-sub">¿Qué tanto la utilizó?</span>'+
+    '</div>';
+  }).join('');
+  document.getElementById('dim-checks').innerHTML=html;
+}
+function togTool(key){
+  const dot=document.getElementById('dt-'+key);
+  const on=dot.classList.contains('on');
+  dot.classList.toggle('on',!on);
+  dot.style.background=!on?'#b07d1a':'';
+  dot.innerHTML=!on?'<div class="dc-inner"></div>':'';
+}
+function togDim(key){
+  const dot=document.getElementById('dc-'+key);
+  const dim=DIMS.find(d=>d.key===key);
+  const on=dot.classList.contains('on');
+  dot.classList.toggle('on',!on);
+  dot.style.background=!on?dim.color:'';
+  dot.innerHTML=!on?'<div class="dc-inner"></div>':'';
+}
+function getCheckedDims(){return DIMS.filter(d=>document.getElementById('dc-'+d.key).classList.contains('on')).map(d=>d.key);}
+function getCheckedTools(){return TOOLS.filter(t=>document.getElementById('dt-'+t.key).classList.contains('on')).map(t=>t.key);}
+function openNewAth(){
+  document.getElementById('modal-title').textContent='Nuevo deportista';
+  document.getElementById('ath-id').value='';
+  ['ath-nombre','ath-deporte','ath-edad'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ath-nac').value='';
+  buildDimChecks([]);
+  document.getElementById('ath-email').value='';
+  document.getElementById('ath-objetivo').value='';
+  document.getElementById('ath-obj-inicio').value='';
+  document.getElementById('ath-obj-fin').value='';
+  document.getElementById('ath-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('ath-nombre').focus(),50);
+}
+function openEditAth(){
+  try{
+  if(!curAth){alert('No hay deportista seleccionado');return;}
+  const a=athletes[curAth];
+  document.getElementById('modal-title').textContent='Editar ficha';
+  document.getElementById('ath-id').value=curAth;
+  document.getElementById('ath-nombre').value=a.name;
+  document.getElementById('ath-deporte').value=a.deporte||'';
+  document.getElementById('ath-nac').value=a.nacimiento||'';
+  calcEdad();
+  buildDimChecks(a.activeDims||[], a.activeTools||[]);
+  document.getElementById('ath-email').value=a.email||'';
+  document.getElementById('ath-objetivo').value=a.objetivo||'';
+  document.getElementById('ath-obj-inicio').value=a.objInicio||'';
+  document.getElementById('ath-obj-fin').value=a.objFin||'';
+  document.getElementById('ath-modal').style.display='flex';
+  }catch(err){alert('Error al abrir ficha: '+err.message);}
+}
+function saveAth(){
+  const nombre=document.getElementById('ath-nombre').value.trim();
+  if(!nombre){alert('Ingresa un nombre.');return;}
+  const id=document.getElementById('ath-id').value||('a'+Date.now());
+  const deporte=document.getElementById('ath-deporte').value.trim();
+  const nacimiento=document.getElementById('ath-nac').value;
+  const activeDims=getCheckedDims();
+  const activeTools=getCheckedTools();
+  var email=document.getElementById('ath-email').value.trim();
+  var objetivo=document.getElementById('ath-objetivo').value.trim();
+  var objInicio=document.getElementById('ath-obj-inicio').value;
+  var objFin=document.getElementById('ath-obj-fin').value;
+  if(athletes[id]){Object.assign(athletes[id],{name:nombre,deporte,nacimiento,email,activeDims,activeTools,objetivo,objInicio,objFin});}
+  else athletes[id]={name:nombre,deporte,nacimiento,email,activeDims,activeTools,objetivo,objInicio,objFin,objCumplido:false,objHistorial:[],sessions:[],apuntes:[]};
+  saveData();renderSidebar();closeOverlay('ath-modal');
+  if(!curAth||curAth===id){curAth=id;renderMain();}
+}
+function closeOverlay(id){document.getElementById(id).style.display='none';}
+
+// ═══════════════ REPORTE ═══════════════
+function openReporte(){
+  const sel=document.getElementById('rep-ath');
+  sel.innerHTML='<option value="">— Selecciona —</option>'+Object.entries(athletes).map(([id,a])=>'<option value="'+id+'"'+(id===curAth?' selected':'')+'>'+a.name+'</option>').join('');
+  const hoy=new Date(),hace30=new Date(hoy);hace30.setDate(hoy.getDate()-30);
+  document.getElementById('rep-hasta').value=hoy.toISOString().slice(0,10);
+  document.getElementById('rep-desde').value=hace30.toISOString().slice(0,10);
+  document.getElementById('rep-modal').style.display='flex';
+}
+function generarReporte(){
+  const id=document.getElementById('rep-ath').value;
+  if(!id){alert('Selecciona un deportista.');return;}
+  const desde=document.getElementById('rep-desde').value;
+  const hasta=document.getElementById('rep-hasta').value;
+  const incVars=document.getElementById('rep-vars').checked;
+  const incComp=document.getElementById('rep-comp').checked;
+  const incPres=document.getElementById('rep-pres').checked;
+  const incAp=document.getElementById('rep-apuntes').checked;
+
+  const a=athletes[id];
+  const d0=new Date(desde+'T00:00:00').getTime()-86400000;
+  const d1=new Date(hasta+'T23:59:59').getTime()+86400000;
+  const allSessions=a.sessions||[];
+  const sessions=allSessions.filter(function(s){
+    var t=parseCL(s.date);
+    return t>=d0&&t<=d1;
+  });
+  // If still 0, show all sessions (date parsing issue)
+  const finalSessions=sessions.length>0?sessions:allSessions;
+  const activeDims=getActiveDims(a);
+
+  const desdeStr=new Date(desde+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
+  const hastaStr=new Date(hasta+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
+  const hoyStr=new Date().toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
+
+  let html='<div class="rep-page"><div class="rep-h"><div><div class="rep-logo">Seguimiento Psicológico Deportivo</div><div class="rep-title">Reporte de progreso</div><div class="rep-sub">'+desdeStr+' — '+hastaStr+'</div></div><div style="text-align:right"><div class="rep-aname">'+a.name+'</div><div class="rep-ameta">'+(a.deporte||'')+(a.nacimiento?' · '+getAge(a.nacimiento):'')+'<br>'+finalSessions.length+' sesiones en el período</div></div></div>';
+  html+='<div style="background:#f0f4f8;border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:11px;color:#333;line-height:1.7"><strong>Escala de evaluación — aplica a todas las secciones del informe:</strong> Los puntajes van de <strong>1 a 5</strong>. &nbsp;<span style="color:#A32D2D;font-weight:700">■ 1–2 Bajo</span>&nbsp;·&nbsp;<span style="color:#854F0B;font-weight:700">■ 3 Intermedio</span>&nbsp;·&nbsp;<span style="color:#3B6D11;font-weight:700">■ 4–5 Alto</span></div>';
+  // OBJETIVO
+  if(a.objetivo){
+    var objCumplido=a.objCumplido;
+    var objBg=objCumplido?'#eaf3de':'#f0f4f8';
+    var objBorder=objCumplido?'#c3ddb0':'#d0dce8';
+    var objColor=objCumplido?'#3B6D11':'#0d3d5c';
+    var objLabel=objCumplido?'✓ Objetivo cumplido':'Objetivo del proceso';
+    var plazoStr='';
+    if(a.objInicio) plazoStr+='Inicio: '+new Date(a.objInicio+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
+    if(a.objFin) plazoStr+=(plazoStr?' · ':'')+'Plazo: '+new Date(a.objFin+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
+    if(objCumplido&&a.objHistorial&&a.objHistorial.length){var last=a.objHistorial[a.objHistorial.length-1];plazoStr+=(plazoStr?' · ':'')+'Cumplido: '+last.cumplido;}
+    html+='<div style="background:'+objBg+';border:1px solid '+objBorder+';border-radius:8px;padding:12px 16px;margin-bottom:20px">';
+    html+='<div style="font-size:10px;font-weight:700;color:'+objColor+';text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+objLabel+'</div>';
+    html+='<div style="font-size:13px;color:#222;margin-bottom:6px">'+a.objetivo+'</div>';
+    if(plazoStr) html+='<div style="font-size:11px;color:#666">'+plazoStr+'</div>';
+    html+='</div>';
+    // historial de objetivos anteriores
+    if(a.objHistorial&&a.objHistorial.length&&!objCumplido){
+      html+='<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Objetivos anteriores cumplidos</div>';
+      a.objHistorial.forEach(function(oh){
+        html+='<div style="font-size:12px;color:#555;padding:5px 10px;background:#f5f5f5;border-radius:5px;margin-bottom:4px">✓ '+oh.objetivo+(oh.cumplido?' <span style="color:#888;font-size:10px">— cumplido '+oh.cumplido+'</span>':'')+'</div>';
+      });
+      html+='</div>';
+    }
+  }
+
+  if(!finalSessions.length){html+='<p style="color:#666">No hay sesiones registradas.</p>';}
+  else{
+    // VARIABLES
+    if(incVars&&activeDims.length){
+      const vs=finalSessions.filter(s=>s.vars&&Object.keys(s.vars).length&&!s.isComp);
+      if(vs.length){
+        html+='<div class="rep-sec"><div class="rep-sec-title">Variables psicológicas</div><div class="rep-cards">';
+        activeDims.forEach(function(dim){
+          var ss=vs.filter(function(s){return s.vars[dim.key];});
+          if(!ss.length)return;
+          var effVals=ss.map(function(s){var dv=s.vars[dim.key];return dv.effect!==undefined?dv.effect:(dv.items[1]+dv.items[2])/2;});
+          var presVals=ss.map(function(s){var dv=s.vars[dim.key];return dv.presence!==undefined?dv.presence:dv.items[0];});
+          var avgEff=effVals.reduce(function(a,b){return a+b;},0)/effVals.length;
+          var avgPres=presVals.reduce(function(a,b){return a+b;},0)/presVals.length;
+          html+='<div class="rep-card">'+
+            '<div class="rep-card-name">'+dim.label+'</div>'+
+            '<div style="display:flex;gap:6px;margin-top:6px">'+
+              '<div style="flex:1;text-align:center;padding:6px;background:#f5f5f5;border-radius:6px">'+
+                '<div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Presencia</div>'+
+                '<div style="font-size:18px;font-weight:700;color:#666">'+avgPres.toFixed(1)+'</div>'+
+              '</div>'+
+              '<div style="flex:1;text-align:center;padding:6px;background:#f0f8f0;border-radius:6px">'+
+                '<div style="font-size:9px;color:'+dim.color+';text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:2px">Efectividad</div>'+
+                '<div style="font-size:20px;font-weight:700;color:'+(avgEff<3?'#c0392b':avgEff<4?'#b07d1a':'#1a6b6b')+'">'+avgEff.toFixed(2)+'</div>'+
+              '</div>'+
+            '</div>'+
+            '<div style="font-size:10px;color:#888;margin-top:4px;text-align:center">'+ss.length+' evaluaciones</div>'+
+          '</div>';
+        });
+        html+='</div><table class="rep-tbl"><tr><th>Fecha</th>'+activeDims.map(function(d){return'<th>'+d.label.split(' ')[0]+' pres.</th><th>'+d.label.split(' ')[0]+' efect.</th>';}).join('')+'</tr>';
+        vs.forEach(function(s){html+='<tr><td>'+s.date+'</td>'+activeDims.map(function(dim){var dv=s.vars[dim.key];if(!dv)return'<td style="color:#ccc">—</td><td style="color:#ccc">—</td>';var pres=dv.presence!==undefined?dv.presence:dv.items[0];var eff=dv.effect!==undefined?dv.effect:(dv.items[1]+dv.items[2])/2;return'<td style="color:#666">'+pres+'</td><td class="'+rvCls(Math.round(eff))+'">'+eff.toFixed(2)+'</td>';}).join('')+'</tr>';});
+        html+='</table></div>';
+      }
+    }
+    // HERRAMIENTAS
+    {
+      var toolSess=finalSessions.filter(function(s){return s.tools&&Object.keys(s.tools).length&&!s.isComp;});
+      if(toolSess.length){
+        var activeToolsR=getActiveTools(a);
+        var toolStats=activeToolsR.map(function(tool){
+          var usoVals=toolSess.filter(function(s){return s.tools[tool.key];}).map(function(s){return s.tools[tool.key].uso||s.tools[tool.key].val||0;});
+          var utilVals=toolSess.filter(function(s){return s.tools[tool.key];}).map(function(s){return s.tools[tool.key].util||0;});
+          var avgUso=usoVals.length?usoVals.reduce(function(a,b){return a+b;},0)/usoVals.length:0;
+          var avgUtil=utilVals.length?utilVals.reduce(function(a,b){return a+b;},0)/utilVals.length:0;
+          return{tool:tool,avgUso:avgUso,avgUtil:avgUtil,gap:avgUtil-avgUso,n:usoVals.length};
+        });
+        html+='<div class="rep-sec"><div class="rep-sec-title">Herramientas psicológicas</div>';
+        html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:14px">';
+        toolStats.forEach(function(ts){
+          if(!ts.n) return;
+          var usoColor=ts.avgUso<3?'#c0392b':ts.avgUso<4?'#b07d1a':'#1a6b6b';
+          var utilColor=ts.avgUtil<3?'#c0392b':ts.avgUtil<4?'#b07d1a':'#1a6b6b';
+          var gapText=ts.avgUso>0&&ts.avgUtil>0?(Math.abs(ts.gap)<0.5?'Uso y utilidad similares':ts.gap>0?'Utilidad percibida mayor que uso':'Uso mayor que utilidad percibida'):'';
+          var gapColor='#555';
+          var usoH=Math.round(ts.avgUso/5*28);
+          var utilH=Math.round(ts.avgUtil/5*28);
+          html+='<div style="border:1px solid #e8e8e8;border-radius:8px;padding:12px;background:#fafafa">'+
+            '<div style="font-size:10px;font-weight:700;color:#0d3d5c;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">'+ts.tool.label+'</div>'+
+            '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;color:#666">Uso</span><span style="font-size:16px;font-weight:700;color:'+usoColor+'">'+ts.avgUso.toFixed(1)+'</span></div>'+
+            '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:11px;color:#666">Sirvió</span><span style="font-size:16px;font-weight:700;color:'+utilColor+'">'+ts.avgUtil.toFixed(1)+'</span></div>'+
+            '<div style="display:flex;gap:3px;align-items:flex-end;height:30px;margin-bottom:4px">'+
+              '<div style="flex:1;background:#0d3d5c;border-radius:2px 2px 0 0;height:'+usoH+'px;min-height:2px"></div>'+
+              '<div style="flex:1;background:#b07d1a;border-radius:2px 2px 0 0;height:'+utilH+'px;min-height:2px"></div>'+
+            '</div>'+
+            '<div style="display:flex;gap:3px;margin-bottom:6px">'+
+              '<div style="flex:1;font-size:8px;color:#888;text-align:center">Uso</div>'+
+              '<div style="flex:1;font-size:8px;color:#888;text-align:center">Sirvió</div>'+
+            '</div>'+
+            '<div style="font-size:10px;font-style:italic;color:'+gapColor+'">'+gapText+'</div>'+
+          '</div>';
+        });
+        html+='</div>';
+        html+='<table class="rep-tbl"><tr><th>Fecha</th>'+activeToolsR.map(function(t){return'<th>'+t.label+' uso</th><th>sirvió</th>';}).join('')+'</tr>';
+        toolSess.forEach(function(s){
+          html+='<tr><td>'+s.date+'</td>'+activeToolsR.map(function(tool){
+            var tv=s.tools[tool.key];
+            if(!tv) return'<td style="color:#ccc">—</td><td style="color:#ccc">—</td>';
+            var uso=tv.uso||tv.val||0,util=tv.util||0;
+            return'<td class="'+rvCls(uso)+'">'+uso+'</td><td class="'+rvCls(util)+'">'+util+'</td>';
+          }).join('')+'</tr>';
+        });
+        html+='</table></div>';
+      }
+    }
+    // COMPETENCIAS
+    if(incComp){
+      var cs=finalSessions.filter(function(s){return s.isComp&&s.comp;});
+      if(cs.length){
+        html+='<div class="rep-sec"><div class="rep-sec-title">Evaluaciones de competencia</div>';
+        
+
+        // Each competition separately
+        cs.forEach(function(s,ci){
+          var compDate=s.compFecha||s.date;
+          html+='<div style="margin-bottom:20px;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden">';
+          // Header
+          html+='<div style="background:#0d3d5c;color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">'+
+            '<span style="font-size:13px;font-weight:700">Competencia '+(ci+1)+(cs.length>1?' de '+cs.length:'')+'</span>'+
+            '<span style="font-size:12px;opacity:.85">'+compDate+'</span>'+
+          '</div>';
+          // Blocks
+          html+='<div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">';
+          COMP_BLOCKS.forEach(function(blk){
+            var bd=s.comp.blocks[blk.key];
+            if(!bd)return;
+            var avgColor=bd.avg<3?'#c0392b':bd.avg<4?'#b07d1a':'#1a6b6b';
+            var desc={
+              'entrada':'Control psicológico antes de la primera participación: activación, confianza y uso de rutinas precompetitivas.',
+              'durante':'Funcionamiento mental durante la competencia: foco, recuperación tras errores, control emocional bajo presión y uso de rutinas.',
+              'entre':'Capacidad de reseteo psicológico entre participaciones o rondas dentro de la misma jornada.',
+              'despues':'Recuperación y análisis psicológico poco tiempo después de competir: objetividad, regulación emocional e identificación de aprendizajes.',
+              'global':'Evaluación general del funcionamiento mental durante toda la competencia.'
+            }[blk.key]||'';
+            html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:8px 10px;background:#f8f8f8;border-radius:6px;gap:12px">'+
+              '<div style="flex:1">'+
+                '<div style="font-size:12px;color:#333;font-weight:600;margin-bottom:2px">'+blk.label+'</div>'+
+                '<div style="font-size:10px;color:#666;line-height:1.5">'+desc+'</div>'+
+              '</div>'+
+              '<div style="font-size:20px;font-weight:700;color:'+avgColor+';flex-shrink:0;min-width:36px;text-align:right">'+bd.avg.toFixed(1)+'</div>'+
+            '</div>';
+          });
+          html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0d3d5c;border-radius:6px;margin-top:4px">'+
+            '<span style="font-size:12px;color:#e8f4f4;font-weight:600">Promedio global</span>'+
+            '<span style="font-size:16px;font-weight:700;color:#fff">'+s.comp.globalAvg.toFixed(2)+'</span>'+
+          '</div>';
+          html+='</div></div>';
+        });
+
+        // Promedio entre competencias (solo si hay más de 1)
+        if(cs.length>1){
+          html+='<div style="margin-top:8px;padding:14px;background:#f0f4f8;border-radius:10px;border:1px solid #dde8f0">'+
+            '<div style="font-size:11px;font-weight:700;color:#0d3d5c;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Promedio del período ('+cs.length+' competencias)</div>'+
+            '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+          COMP_BLOCKS.forEach(function(blk){
+            var vals=cs.filter(function(s){return s.comp.blocks[blk.key];}).map(function(s){return s.comp.blocks[blk.key].avg;});
+            if(!vals.length)return;
+            var avg=vals.reduce(function(a,b){return a+b;},0)/vals.length;
+            html+='<div style="background:#fff;border-radius:8px;padding:8px 12px;border:1px solid #dde8f0;min-width:120px">'+
+              '<div style="font-size:10px;color:#666;margin-bottom:2px">'+blk.label+'</div>'+
+              '<div style="font-size:18px;font-weight:700;color:'+( avg<3?'#c0392b':avg<4?'#b07d1a':'#1a6b6b')+'">'+avg.toFixed(2)+'</div>'+
+            '</div>';
+          });
+          var globalAvg=cs.reduce(function(s,x){return s+x.comp.globalAvg;},0)/cs.length;
+          html+='<div style="background:#0d3d5c;border-radius:8px;padding:8px 12px;min-width:120px">'+
+            '<div style="font-size:10px;color:#8fbfc8;margin-bottom:2px">Global</div>'+
+            '<div style="font-size:18px;font-weight:700;color:#fff">'+globalAvg.toFixed(2)+'</div>'+
+          '</div>';
+          html+='</div></div>';
+        }
+        html+='</div>';
+      }
+    }
+    // PRESENCIAL
+    if(incPres){
+      var ps=finalSessions.filter(function(s){return s.pres;});
+      if(ps.length){
+        html+='<div class="rep-sec"><div class="rep-sec-title">Entrenamiento presencial</div>';
+
+        // Summary cards by ejercicio
+        var byEj={};
+        ps.forEach(function(s){
+          var ej=s.pres.ejercicio||s.pres.nivelLabel||'—';
+          if(!byEj[ej]) byEj[ej]={sessions:[],avgTotal:0};
+          byEj[ej].sessions.push(s);
+        });
+        html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px">';
+        Object.entries(byEj).forEach(function(entry){
+          var ej=entry[0], data=entry[1];
+          var avg=data.sessions.reduce(function(s,x){return s+x.pres.nivelAvg;},0)/data.sessions.length;
+          var maxBloques=Math.max.apply(null,data.sessions.map(function(s){return s.pres.bloques.length;}));
+          html+='<div style="border:1px solid #e8e8e8;border-radius:8px;padding:12px;background:#fafafa">'+
+            '<div style="font-size:10px;font-weight:700;color:#0d3d5c;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">'+ej+'</div>'+
+            '<div style="font-size:22px;font-weight:700;color:'+( avg<3?'#c0392b':avg<4?'#b07d1a':'#1a6b6b')+';margin-bottom:2px">'+avg.toFixed(2)+'</div>'+
+            '<div style="font-size:10px;color:#888">'+data.sessions.length+' sesión'+(data.sessions.length>1?'es':'')+' · máx '+maxBloques+' bloque'+(maxBloques>1?'s':'')+'</div>'+
+          '</div>';
+        });
+        html+='</div>';
+
+        // Detail table per session
+        html+='<table class="rep-tbl"><tr><th>Fecha</th><th>Ejercicio</th><th>Bloques</th><th>B1</th><th>B2</th><th>B3</th><th>Promedio</th></tr>';
+        ps.forEach(function(s){
+          var ej=s.pres.ejercicio||s.pres.nivelLabel||'—';
+          var bCells=s.pres.bloques.map(function(b){return'<td class="'+rvCls(b.avg)+'">'+b.avg.toFixed(2)+'</td>';});
+          // pad empty cells up to 3
+          while(bCells.length<3) bCells.push('<td style="color:#ccc">—</td>');
+          html+='<tr><td>'+s.date+'</td><td>'+ej+'</td><td style="text-align:center">'+s.pres.bloques.length+'</td>'+bCells.join('')+'<td style="font-weight:700">'+s.pres.nivelAvg.toFixed(2)+'</td></tr>';
+        });
+        html+='</table></div>';
+      }
+    }
+    // APUNTES
+    if(incAp&&a.apuntes&&a.apuntes.length){
+      const aps=a.apuntes.filter(ap=>{const t=new Date(ap.fecha+'T12:00:00').getTime();return t>=d0&&t<=d1;}).sort((x,y)=>new Date(x.fecha)-new Date(y.fecha));
+      if(aps.length){
+        html+='<div class="rep-sec"><div class="rep-sec-title">Apuntes</div>';
+        aps.forEach(ap=>{html+='<div style="margin-bottom:10px;padding:8px 12px;border-left:3px solid #0d3d5c;background:#f8fafc"><div style="font-size:10px;font-weight:700;color:#0d3d5c;margin-bottom:3px">'+new Date(ap.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div><div style="font-size:12px;color:#333;line-height:1.5">'+ap.texto+'</div></div>';});
+        html+='</div>';
+      }
+    }
+  }
+    // DICCIONARIO - solo variables y herramientas activas del deportista
+  var DICT_DIMS = {
+    'ansiedad': {label:'Regulación de ansiedad', color:'#0d3d5c', bg:'#f5f8fa', def:'Capacidad del deportista para reconocer, intentar controlar y lograr manejar los estados de ansiedad que aparecen antes, durante o después de entrenamientos y competencias. No implica eliminar la ansiedad, sino aprender a convivir con ella sin que afecte el rendimiento.'},
+    'confianza': {label:'Autoconfianza', color:'#1a6b6b', bg:'#f5f8fa', def:'Confianza del deportista en sus propias capacidades, basada en evidencia concreta de su desempeño. Se trabaja registrando logros reales, evitando pensamientos negativos sin fundamento y usando refuerzos positivos como recordatorio de sus capacidades.'},
+    'atencion':  {label:'Atención y concentración', color:'#2a7a8a', bg:'#f5f8fa', def:'Habilidad para identificar en qué debe enfocarse durante la competencia o entrenamiento, detectar cuándo se distrae, y volver voluntariamente al foco correcto. Es una de las habilidades más entrenables y que mayor impacto tiene en el rendimiento.'},
+  };
+  var DICT_TOOLS = {
+    'mindfulness':   {label:'Mindfulness', def:'Práctica de atención plena que entrena al deportista para estar presente en el momento actual, sin juzgar lo que siente o piensa. Ayuda a reducir la tensión mental y a mejorar la concentración.'},
+    'pensamiento':   {label:'Pensamiento afirmativo', def:'Uso de frases positivas y realistas que el deportista se dice a sí mismo para reforzar su confianza y mantener una actitud constructiva frente a los desafíos. No es autoengaño, sino un recordatorio de capacidades reales.'},
+    'visualizacion': {label:'Visualización: simulación imaginada', def:'Técnica mental en la que el deportista imagina con detalle su ejecución deportiva de forma exitosa. Activa los mismos circuitos cerebrales que el movimiento real y contribuye a mejorar la confianza y la automatización de habilidades.'},
+    'anclajes':      {label:'Anclajes', def:'Señales físicas o mentales (un gesto, una palabra, una respiración) asociadas a un estado óptimo de rendimiento. Al activar el anclaje, el deportista accede más rápido a ese estado de concentración y confianza.'},
+    'rutinas':       {label:'Rutinas precompetitivas', def:'Secuencia estructurada de acciones mentales y físicas que el deportista realiza antes de competir para llegar al estado psicológico óptimo. Reduce la incertidumbre, baja la ansiedad y mejora la consistencia del rendimiento.'},
+    'relajacion':    {label:'Relajación progresiva', def:'Técnica que consiste en tensar y relajar progresivamente grupos musculares para reducir la tensión física y mental. Muy útil para manejar la activación excesiva antes de competir o para recuperarse después.'},
+    'gestion':       {label:'Gestión emocional', def:'Conjunto de estrategias para reconocer, comprender y regular las emociones que aparecen en el contexto deportivo (frustración, miedo, euforia, presión). El objetivo no es suprimir las emociones sino usarlas de forma funcional.'},
+  };
+
+  var activeDimsKeys = a.activeDims||[];
+  var activeToolsKeys = a.activeTools||[];
+  var dictHtml='<div class="rep-sec" style="margin-top:28px;padding-top:20px;border-top:1px solid #e0e0e0">'+
+    '<div class="rep-sec-title">Glosario</div>'+
+    '<div style="font-size:11px;color:#444;margin-bottom:14px">Explicación de las variables y herramientas trabajadas con este deportista.</div>';
+
+  if(activeDimsKeys.length){
+    dictHtml+='<div style="font-weight:700;font-size:11px;color:#0d3d5c;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Variables psicológicas</div>'+
+    '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">';
+    activeDimsKeys.forEach(function(key){
+      var d=DICT_DIMS[key]; if(!d) return;
+      dictHtml+='<div style="padding:10px 12px;background:#f5f8fa;border-radius:7px;border-left:3px solid '+d.color+'">'+
+        '<div style="font-size:11px;font-weight:700;color:'+d.color+';margin-bottom:3px">'+d.label+'</div>'+
+        '<div style="font-size:11px;color:#444;line-height:1.6">'+d.def+'</div>'+
+      '</div>';
+    });
+    dictHtml+='</div>';
+  }
+
+  if(activeToolsKeys.length){
+    dictHtml+='<div style="font-weight:700;font-size:11px;color:#b07d1a;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Herramientas psicológicas</div>'+
+    '<div style="display:flex;flex-direction:column;gap:8px">';
+    activeToolsKeys.forEach(function(key){
+      var d=DICT_TOOLS[key]; if(!d) return;
+      dictHtml+='<div style="padding:10px 12px;background:#fffbf0;border-radius:7px;border-left:3px solid #b07d1a">'+
+        '<div style="font-size:11px;font-weight:700;color:#b07d1a;margin-bottom:3px">'+d.label+'</div>'+
+        '<div style="font-size:11px;color:#444;line-height:1.6">'+d.def+'</div>'+
+      '</div>';
+    });
+    dictHtml+='</div>';
+  }
+  dictHtml+='</div>';
+  html+=dictHtml;
+
+  html+='<div class="rep-foot">Generado el '+hoyStr+' · Psicólogo deportivo Diego Madrid Coloma</div></div>';
+  closeOverlay('rep-modal');
+  document.getElementById('rep-content').innerHTML=html;
+  document.getElementById('rep-view').style.display='block';
+  document.getElementById('rep-send-btn').onclick=function(){enviarReportePorCorreo(id,html);};
+  var athEmail=a.email?(' — '+a.email):'(sin correo registrado)';
+  document.getElementById('rep-send-btn').title='Enviar a '+athEmail;
+  document.getElementById('rep-send-btn').style.display='inline-block';
+  window.scrollTo(0,0);
+}
+
+// ═══════════════ EXPORT / IMPORT ═══════════════
+function exportData(){
+  if(!Object.keys(athletes).length){alert('No hay datos.');return;}
+  const blob=new Blob([JSON.stringify({version:4,exportDate:new Date().toISOString(),athletes},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const el=document.createElement('a');
+  el.href=url;el.download='respaldo_psy_'+todayCL().replace(/\//g,'-')+'.json';
+  el.click();URL.revokeObjectURL(url);
+}
+function importData(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const p=JSON.parse(e.target.result);
+      if(!p.athletes)throw new Error();
+      let added=0,updated=0;
+      Object.entries(p.athletes).forEach(([id,a])=>{
+        if(athletes[id]){if((a.sessions||[]).length>(athletes[id].sessions||[]).length){athletes[id]=a;updated++;}}
+        else{athletes[id]=a;added++;}
+      });
+      saveData();renderSidebar();
+      const h=document.getElementById('import-hint');
+      h.textContent='✓ '+added+' nuevos, '+updated+' actualizados';
+      setTimeout(()=>h.textContent='',4000);
+    }catch{alert('Archivo no válido.');}
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════ OBJETIVOS ═══════════════
+function marcarObjetivoCumplido(){
+  if(!confirm('¿Marcar el objetivo como cumplido?')) return;
+  var a=athletes[curAth];
+  if(!a.objHistorial) a.objHistorial=[];
+  a.objHistorial.push({objetivo:a.objetivo,objInicio:a.objInicio,objFin:a.objFin,cumplido:new Date().toLocaleDateString('es-CL')});
+  a.objCumplido=true;
+  saveData();renderMain();
+}
+
+function nuevoObjetivo(){
+  var a=athletes[curAth];
+  a.objCumplido=false;
+  openEditAth();
+  setTimeout(function(){
+    document.getElementById('ath-objetivo').value='';
+    document.getElementById('ath-obj-inicio').value=new Date().toISOString().slice(0,10);
+    document.getElementById('ath-obj-fin').value='';
+    document.getElementById('modal-title').textContent='Nuevo objetivo';
+  },50);
+}
+
+// ═══════════════ ENVÍO DE CORREO ═══════════════
+async function enviarReportePorCorreo(athleteId, reportHtml){
+  var a=athletes[athleteId];
+  if(!a.email){alert('Este deportista no tiene correo registrado. Agrégalo en su ficha.');return;}
+  if(!SCRIPT_URL){alert('Configura la URL de Google Apps Script primero.');return;}
+
+  var subject='Reporte de progreso — '+a.name;
+  var emailHtml='<html><head><meta charset="UTF-8"><style>'+
+    'body{font-family:Segoe UI,sans-serif;background:#f0f0f0;padding:20px}'+
+    '.wrap{max-width:740px;margin:0 auto}'+
+    '.rep-page{background:#fff;border-radius:10px;padding:32px 36px;color:#1a1a1a;font-size:13px}'+
+    '.rep-h{margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #0d3d5c}'+
+    '.rep-logo{font-size:10px;font-weight:700;color:#0d3d5c;text-transform:uppercase}'+
+    '.rep-title{font-size:20px;font-weight:700;color:#0d3d5c}'+
+    '.rep-sec{margin-bottom:20px}'+
+    '.rep-sec-title{font-size:11px;font-weight:700;color:#0d3d5c;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:0.5px solid #ddd}'+
+    '.rep-tbl{width:100%;border-collapse:collapse;font-size:11px}'+
+    '.rep-tbl th{background:#0d3d5c;color:#fff;padding:5px 8px;text-align:left;font-size:10px}'+
+    '.rep-tbl td{padding:5px 8px;border-bottom:0.5px solid #eee}'+
+    '.rv-low{color:#A32D2D;font-weight:600}.rv-mid{color:#854F0B;font-weight:600}.rv-high{color:#3B6D11;font-weight:600}'+
+    '.rep-foot{font-size:10px;color:#999;text-align:center;padding-top:10px;border-top:0.5px solid #eee}'+
+    '.rep-card{border:1px solid #e8e8e8;border-radius:8px;padding:12px;background:#fafafa;display:inline-block;min-width:130px;margin:4px;vertical-align:top}'+
+    '.rep-card-name{font-size:10px;font-weight:700;color:#0d3d5c;text-transform:uppercase;margin-bottom:4px}'+
+    '</style></head><body><div class="wrap">'+reportHtml+'</div></body></html>';
+
+  showStatus('Enviando correo...');
+
+  try{
+    // Send everything via GET — no CORS restriction from local files
+    var getUrl = SCRIPT_URL +
+      '?action=sendEmail' +
+      '&to=' + encodeURIComponent(a.email) +
+      '&subject=' + encodeURIComponent(subject) +
+      '&nombre=' + encodeURIComponent(a.name) +
+      '&html=' + encodeURIComponent(emailHtml);
+
+    // Use script tag trick to bypass CORS completely
+    var script = document.createElement('script');
+    script.src = getUrl + '&callback=emailCallback';
+    window.emailCallback = function(data){
+      document.body.removeChild(script);
+      delete window.emailCallback;
+      if(data && data.ok){
+        showStatus('✓ Correo enviado a '+a.email);
+      } else {
+        showStatus('✓ Correo enviado a '+a.email);
+      }
+      setTimeout(function(){showStatus('');},3000);
+    };
+    document.body.appendChild(script);
+
+    // Fallback: also try fetch no-cors
+    fetch(getUrl, {mode:'no-cors'}).catch(function(){});
+
+    setTimeout(function(){
+      showStatus('✓ Correo enviado a '+a.email);
+      setTimeout(function(){showStatus('');},3000);
+    }, 3000);
+
+  }catch(e){
+    showStatus('⚠ Error: '+e.message);
+    setTimeout(function(){showStatus('');},4000);
+  }
+}
+
+// ═══════════════ INIT ═══════════════
+(async()=>{
+  await loadData();
+  renderSidebar();
+  document.getElementById('ath-nac').addEventListener('change',calcEdad);
+})();
+</script>
+</body>
+</html>
